@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.TdPreloanReportMapper" >
+
+
+	<insert id="insertPreloanReport">
+		INSERT INTO mgt_data_td_preloan_report 
+			(report_id, apply_id, user_id, req, apply_date)
+		VALUES 
+			(#{reportId}, #{applyId}, #{userId}, #{req}, #{applyDate})
+	</insert>
+	
+	
+	<update id="updatePreloanReport">
+		UPDATE mgt_data_td_preloan_report 
+		SET rsp = #{rsp}, report_date =  #{reportDate}, final_score = #{finalScore},
+			final_decision = #{finalDecision}, status = #{status}, apply_id = #{applyId}
+		WHERE report_id = #{reportId}
+	</update>
+	
+	<select id="selectPreloanReport" resultType="com.jbb.mgt.core.domain.PreloanReport">
+		SELECT r.report_id as reportId, r.user_id as userId, r.req as req, r.rsp as rsp, 
+			r.apply_date as applyDate, r.report_date as reportDate, r.final_score as finalScore,
+			r.final_decision as finalDecision, r.status as status, r.apply_id as applyId
+		FROM mgt_data_td_preloan_report r
+		WHERE 1=1 
+		<if test="reportId"> 
+			AND r.report_id = #{reportId}
+		</if>
+		<if test="userId"> 
+			AND r.user_id = #{userId}
+		</if>
+		<if test="applyId"> 
+			AND r.apply_id = #{applyId}
+		</if>
+		ORDER BY r.status DESC, r.report_date DESC
+		LIMIT 1
+	</select>
+	
+</mapper>

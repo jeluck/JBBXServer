@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbb.mgt.core.dao.mapper.MessageCodeMapper">
+
+	<insert id="saveMessageCode">
+		INSERT INTO mgt_message_code (phone_number, channel_code, msg_code, creation_date, expire_date)
+		VALUES (#{phoneNumber}, #{channelCode}, #{msgCode}, #{creationDate}, #{expireDate})
+		ON DUPLICATE KEY UPDATE msg_code = #{msgCode}, creation_date = #{creationDate}, expire_date = #{expireDate}
+	</insert>	
+	
+	<select id="checkMsgCode" resultType="java.lang.Integer">
+		SELECT EXISTS (SELECT 1 FROM mgt_message_code
+        WHERE phone_number = #{phoneNumber} AND channel_code = #{channelCode} AND msg_code = #{msgCode} AND expire_date &gt; #{date})
+	</select>
+</mapper>

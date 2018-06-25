@@ -1,0 +1,12 @@
+.classpath
+.project
+.settings
+target
+.idea
+<<<<<<< HEAD
+*.iml
+=======
+*.iml
+common/config/properties/db.properties
+.DS_Store
+>>>>>>> next-mgt

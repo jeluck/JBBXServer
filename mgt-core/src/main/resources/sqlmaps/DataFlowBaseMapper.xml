@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.jbb.mgt.core.dao.mapper.DataFlowBaseMapper">
+	<insert id="insertDataFlowBase">
+		INSERT INTO `mgt_dflow_base`
+		(`jexl_script`,`jexl_desc`,`price`,`creation_date`,`is_deleted`)
+		VALUES
+		(#{jexlScript},#{jexlDesc},#{price},#{creationDate},#{deleted})
+	</insert>
+
+	<select id="selectDataFlowBase" resultType="com.jbb.mgt.core.domain.DataFlowBase">
+		SELECT `dflow_id` as dataFlowId,`jexl_script` as jexlScript,
+			`jexl_desc` as jexlDesc,`price` as price,
+			`creation_date` as creationDate,`is_deleted` as deleted
+		FROM `mgt_dflow_base` 
+		WHERE is_deleted = 0
+	</select>
+	
+	<select id="selectDataFlowBaseById" resultType="com.jbb.mgt.core.domain.DataFlowBase">
+		SELECT `dflow_id` as dataFlowId,`jexl_script` as jexlScript,
+			`jexl_desc` as jexlDesc,`price` as price,
+			`creation_date` as creationDate,`is_deleted` as deleted
+		FROM `mgt_dflow_base` df
+		WHERE df.dflow_id = #{dataFlowId}
+	</select>
+
+	<update id="updateDataFlowBase">
+		UPDATE `mgt_dflow_base`
+		SET `jexl_script`= #{jexlScript}, `jexl_desc` = #{jexlDesc}, `price` =#{price}
+		WHERE `dflow_id` = #{dataFlowId}
+	</update>
+
+	<update id="deleteDataFlowBase">
+		UPDATE mgt_dflow_base
+		SET is_deleted = 1
+		WHERE dflow_id = #{dataFlowId}
+	</update>
+</mapper> 

@@ -1,0 +1,8 @@
+<configuration debug="false" scan="true">
+
+	<define name="APP_HOME" class="com.jbb.server.common.HomeProperty" />
+	<property name="MODULE" value="processor" />
+
+	<include file="${APP_HOME}/config/logback-inc.xml" />
+
+</configuration>

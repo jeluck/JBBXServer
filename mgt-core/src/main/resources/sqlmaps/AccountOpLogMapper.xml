@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.AccountOpLogMapper">
+
+    <sql id="accountOpLogCols">
+		l.log_id,l.account_id, l.apply_id, l.op_type, l.op_date, l.op_reason, l.op_comment
+	</sql>
+    <resultMap id="accountOpLogMap" type="com.jbb.mgt.core.domain.AccountOpLog">
+        <id property="logId" column="log_id"/>
+        <result property="applyId" column="apply_id"/>
+        <result property="opType" column="op_type"/>
+        <result property="opDate" column="op_date"/>
+        <result property="opReason" column="op_reason"/>
+        <result property="accountId" column="accountId"/>
+        <result property="opComment" column="op_comment"/>
+        <association property="account" javaType="com.jbb.mgt.core.domain.Account">
+            <id property="accountId" column="account_id" jdbcType="INTEGER"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <select id="selectAccountOpLogByApplyId" resultMap="accountOpLogMap">
+        SELECT<include refid="accountOpLogCols"/>,
+        accA.account_id AS accountId, accA.username AS username, accA.nickName AS nickname
+        FROM mgt_account_op_log l
+        LEFT JOIN mgt_accounts accA ON l.account_id = accA.account_id
+        WHERE
+        l.apply_id = #{applyId}
+        ORDER BY l.op_date DESC
+    </select>
+
+
+    <insert id="insertOpLog">
+		INSERT INTO mgt_account_op_log 
+			(account_id, apply_id, op_type, op_date, op_reason, op_comment)
+		VALUES 
+			(#{accountId}, #{applyId}, #{opType}, #{opDate}, #{opReason}, #{opComment})
+	</insert>
+
+	<select id="getCount" resultType="java.lang.Integer">
+	        SELECT COUNT(DISTINCT c.apply_id) AS count 
+	               FROM  mgt_account_op_log c
+	               WHERE c.op_type in
+        		<foreach item="op" index="index" collection="ops" open="(" separator="," close=")">
+					#{op}
+				</foreach>
+	                AND c.account_id=#{accountId}
+	      <if test="newtype != null and newtype != false"> AND  to_days(c.creation_date) = to_days(now())</if>
+    </select>
+      
+</mapper>

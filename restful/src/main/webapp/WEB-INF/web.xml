@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+    <module-name>Ensemble Cloud API</module-name>
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/applicationContext.xml</param-value>
+    </context-param>
+    
+    <context-param>
+        <param-name>resteasy.providers</param-name>
+        <param-value>
+	        com.jbb.server.rs.formatter.JsonProvider,
+	        com.jbb.server.rs.exception.ApplicationExceptionMapper,
+	        com.jbb.server.rs.exception.ReaderExceptionMapper,
+	        com.jbb.server.rs.exception.WriterExceptionMapper,
+	        com.jbb.server.rs.exception.UnmarshalExceptionMapper,
+	        com.jbb.server.rs.exception.ClientErrorExceptionMapper,
+	        com.jbb.server.rs.exception.ServerErrorExceptionMapper
+        </param-value>
+    </context-param>
+
+    <servlet>
+        <servlet-name>Resteasy</servlet-name>
+        <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    </servlet>
+    <servlet-mapping>
+	    <servlet-name>Resteasy</servlet-name>
+	    <url-pattern>/api/*</url-pattern>
+	    <url-pattern>/xml/*</url-pattern>
+	    <url-pattern>/admin/*</url-pattern>
+	    <url-pattern>/club/*</url-pattern>
+	    <url-pattern>/integrate/*</url-pattern>
+    </servlet-mapping>
+  
+    <listener>
+        <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
+    </listener>
+  
+    <listener>
+        <listener-class>org.jboss.resteasy.plugins.spring.SpringContextLoaderListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>com.jbb.server.rs.servlet.ApplicationEventListener</listener-class>
+    </listener>
+  
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+</web-app>

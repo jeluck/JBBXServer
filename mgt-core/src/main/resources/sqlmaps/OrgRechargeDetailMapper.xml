@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.OrgRechargeDetailMapper">
+	<insert id="insertOrgRechargeDetail">
+	INSERT INTO mgt_org_recharge_detail 
+	(trade_no,account_id,op_type,amount,status,creation_date,params)
+	VALUES
+	(#{tradeNo},#{accountId},#{opType},#{amount},#{status},#{creationDate},#{params})
+	</insert>
+	
+	<select id="selectOrgRechargeDetail" resultType="com.jbb.mgt.core.domain.OrgRechargeDetail">
+		SELECT 	c.trade_no AS tradeNo,c.account_id AS accountId,c.op_type AS opType,c.amount AS amount,c.status AS status,c.creation_date AS creationDate,c.params as params
+		FROM mgt_org_recharge_detail c
+		WHERE c.trade_no = #{tradeNo}
+	</select>
+	
+	<select id="selectOrgRechargeDetailById" resultType="com.jbb.mgt.core.domain.OrgRechargeDetail">
+		SELECT 	c.trade_no AS tradeNo,c.account_id AS accountId,c.op_type AS opType,c.amount AS amount,c.status AS status,c.creation_date AS creationDate,c.params as params
+		FROM mgt_org_recharge_detail c
+		WHERE c.account_id = #{accountId}
+	</select>
+	
+	<select id="selectAllOrgRechargeDetail" resultType="com.jbb.mgt.core.domain.OrgRechargeDetail">
+		SELECT 	c.trade_no AS tradeNo,c.account_id AS accountId,c.op_type AS opType,c.amount AS amount,c.status AS status,c.creation_date AS creationDate,c.params as params
+		FROM mgt_org_recharge_detail c
+		WHERE c.account_id IN (SELECT account_id  FROM mgt_accounts WHERE org_id=#{orgId} )
+	</select>
+	
+	<update id="updateOrgRechargeDetail">
+		UPDATE mgt_org_recharge_detail c
+		SET
+		c.op_type = #{opType},c.amount=#{amount},c.status=#{status}
+		WHERE
+		c.trade_no = #{tradeNo}
+	</update>
+</mapper> 

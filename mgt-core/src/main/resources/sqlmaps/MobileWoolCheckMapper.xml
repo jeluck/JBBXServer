@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.MobileWoolCheckMapper">
+	<sql id="woolCheckInfo">
+		c.tradeNo,c.mobile,c.tag,c.ip_address,c.charges_status,
+		c.status
+	</sql>
+	<insert id="insertWoolCheckResult">
+	INSERT INTO mgt_mobile_wool_check
+		(tradeNo, mobile,tag,ip_address,charges_status,status)
+		VALUES
+		(#{tradeNo},#{mobile},#{tag},#{ipAddrdss},#{chargesStatus},#{status})
+	</insert>
+	
+	<select id="getWoolCheckResult" resultType="com.jbb.mgt.core.domain.ChuangLanWoolCheck">
+		SELECT c.tradeNo,c.mobile,c.tag,c.ip_address AS IpAddrdss,c.charges_status AS chargesStatus,c.status
+		FROM mgt_mobile_wool_check c
+		WHERE c.mobile = #{mobile}	
+	</select>
+
+</mapper> 

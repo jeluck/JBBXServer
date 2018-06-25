@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.UserVerifyMapper">
+
+	<insert id="saveUserVerifyResult">
+		INSERT INTO user_verify_result(user_id, verify_type,
+		verify_step, verified, creation_date, update_date)
+		VALUES(#{userId},
+		#{verifyType}, #{verifyStep}, #{verified}, CURRENT_TIMESTAMP,
+		CURRENT_TIMESTAMP)
+		ON DUPLICATE KEY UPDATE verified = #{verified},
+		update_date = CURRENT_TIMESTAMP
+	</insert>
+
+	<select id="checkUserVerified" resultType="java.lang.Integer">
+		SELECT EXISTS (
+		SELECT 1 FROM user_verify_result uvr
+		WHERE uvr.user_id =#{userId} AND uvr.verify_type =#{verifyType}
+		AND uvr.verify_step =#{verifyStep} AND uvr.verified = 1
+		)
+	</select>
+	
+	
+	<select id="selectUserVerifyResult" resultType="com.jbb.server.core.domain.UserVerifyResult">
+		SELECT uvr.verify_type as verifyType, uvr.verify_step as verifyStep, verified, uvr.creation_date as creationDate, uvr.update_date as updateDate
+		FROM user_verify_result uvr 
+		WHERE uvr.user_id = #{userId}
+	</select>
+
+</mapper>

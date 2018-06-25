@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.IouFollowerMapper">
+
+
+	<insert id="saveIouFollower">
+		INSERT INTO iou_followers(user_id,iou_code, status, update_date)
+		VALUES(#{userId}, #{iouCode}, #{status}, CURRENT_TIMESTAMP)
+		ON DUPLICATE KEY UPDATE status = #{status}, update_date = CURRENT_TIMESTAMP
+	</insert>
+
+	
+	<select id="getIouFollowers" resultType="com.jbb.server.core.domain.FollowerRecord">
+		SELECT u.user_id AS "user.userId", u.nick_name AS "user.nickName", u.avatar_pic AS "user.avatarPic", 
+			u.is_verified AS "user.verified", u.user_name AS "user.userName",
+			iouf.update_date AS updateDate, iouf.status AS status, iouf.iou_code AS iouCode
+		FROM iou_followers iouf
+		INNER JOIN users u on u.user_id = iouf.user_id
+		WHERE iouf.iou_code = #{iouCode} 
+		<if test="userId!=null">
+			AND iouf.user_id = #{userId}
+		</if>
+	</select>
+	
+	
+	<select id="checkExistUserFollowed" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM iou_followers iouf
+			WHERE iouf.user_id =#{userId} AND iouf.iou_code =#{iouCode} AND status = 1
+		)
+	</select>
+</mapper>

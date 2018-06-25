@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.ChannelMapper">
+
+	<sql id="channelInfo">
+		c.channel_code AS channelCode , c.channel_name AS channelName ,
+		c.channel_url AS channelUrl, c.service_qq as serviceQQ,
+		c.service_wechat AS serviceWechat,c.status as status,
+		c.mode as mode, c.source_phone_number as sourcePhoneNumber,
+		c.source_password as sourcePassword,
+		c.creator AS creator,c.creation_date AS creationDate,
+		c.qq_required as qqRequired,c.wechat_required as wechatRequired,
+		c.zhima_required as zhimaRequired,
+		c.idcard_info_required as idcardInfoRequired,
+		c.idcard_back_required as idcardBackRequired,
+		c.idcard_rear_required as idcardRearRequired,
+		c.header_required as headerRequired,
+		c.mobile_contract1_required as mobileContract1Required,
+		c.mobile_contract2_required as mobileContract2Required,
+		c.mobile_service_info_required as mobileServiceInfoRequired,
+		c.cpa_price as cpaPrice,c.cps_price as cpsPrice,
+		c.receive_mode as receiveMode,c.is_hidden as hidden,
+		c.taobao_required as taobaoRequired,c.jingdong_required as jingdongRequired,
+		c.gjj_required as gjjRequired,c.sj_required as sjRequired,
+		c.chsi_required as chsiRequired
+	</sql>
+
+	<sql id="channelInfoAndCreator">
+		acc.account_id AS accountId , acc.username AS username ,
+		acc.phone_number as phoneNumber,
+		acc.jbb_user_id AS jbbUserId,acc.password as password,
+		acc.org_id as orgId, acc.creator as creator,
+		acc.creation_date as creationDate,
+		acc.nickname as nickname,
+		acc.is_deleted AS deleted,acc.is_freeze AS freeze
+	</sql>
+
+	<insert id="insertChannal">
+		INSERT INTO mgt_channels
+		(channel_code, channel_name,channel_url,service_qq,
+		service_wechat,status, mode,source_phone_number,source_password,
+		creator,creation_date,qq_required,wechat_required,zhima_required,
+		idcard_info_required,idcard_back_required,idcard_rear_required,
+		header_required,mobile_contract1_required,mobile_contract2_required,
+		mobile_service_info_required,cpa_price,cps_price,receive_mode,is_hidden,
+		taobao_required,jingdong_required,gjj_required,sj_required )
+		VALUES
+		(#{channelCode},#{channelName},#{channelUrl},
+		#{serviceQQ},#{serviceWechat},#{status},
+		#{mode},#{sourcePhoneNumber},#{sourcePassword},
+		#{creator},now(),
+		#{qqRequired},#{wechatRequired},#{zhimaRequired},
+		#{idcardInfoRequired},#{idcardBackRequired},#{idcardRearRequired},
+		#{headerRequired},#{mobileContract1Required},#{mobileContract2Required},
+		#{mobileServiceInfoRequired},#{cpaPrice},#{cpsPrice},#{receiveMode},#{hidden},
+		#{taobaoRequired},#{jingdongRequired},#{gjjRequired},#{sjRequired})
+	</insert>
+
+	<update id="updateChannel">
+		UPDATE mgt_channels
+		SET
+		channel_name = #{channelName},
+		channel_url=#{channelUrl},service_qq=#{serviceQQ},
+		service_wechat=#{serviceWechat},status=#{status},
+		mode=#{mode},source_phone_number=#{sourcePhoneNumber},
+		source_password=#{sourcePassword},creator=#{creator},
+		creation_date=#{creationDate},
+		qq_required =#{qqRequired},wechat_required=#{wechatRequired},
+		zhima_required=#{zhimaRequired}, 
+		idcard_info_required =#{idcardInfoRequired},
+		idcard_back_required=#{idcardBackRequired},
+		idcard_rear_required=#{idcardRearRequired},
+		header_required=#{headerRequired},
+		mobile_contract1_required=#{mobileContract1Required},
+		mobile_contract2_required=#{mobileContract2Required},
+		mobile_service_info_required=#{mobileServiceInfoRequired},
+		cpa_price=#{cpaPrice},cps_price=#{cpsPrice},receive_mode=#{receiveMode},
+		is_hidden=#{hidden},taobao_required=#{taobaoRequired},
+		jingdong_required=#{jingdongRequired},gjj_required=#{gjjRequired},
+		sj_required=#{sjRequired},chsi_required=#{chsiRequired}
+		WHERE
+		channel_code = #{channelCode}
+	</update>
+
+	<update id="deleteChannel">
+		UPDATE mgt_channels
+		SET status = 1
+		WHERE channel_code = #{channelCode}
+	</update>
+
+	<select id="selectChannelByCode" resultMap="channels">
+		SELECT <include refid="channelInfo"></include>,<include refid="channelInfoAndCreator"></include>
+		FROM mgt_channels c JOIN mgt_accounts acc ON c.creator = acc.account_id
+		WHERE c.channel_code = #{channelCode}
+	</select>
+
+	<select id="selectChannelBySourcePhoneNumber" resultType="com.jbb.mgt.core.domain.Channel">
+		SELECT <include refid="channelInfo"></include>
+		FROM mgt_channels c
+		WHERE c.source_phone_number = #{sourcePhoneNumber}
+		LIMIT 1
+	</select>
+
+	<resultMap id="channels" type="com.jbb.mgt.core.domain.Channel">
+		<id column="channelCode" jdbcType="VARCHAR" property="channelCode" />
+		<result column="channelName" jdbcType="VARCHAR" property="channelName"/>
+		<result column="channelUrl" jdbcType="VARCHAR" property="channelUrl"/>
+		<result column="serviceQQ" jdbcType="VARCHAR" property="serviceQQ"/>
+		<result column="serviceWechat" jdbcType="VARCHAR" property="serviceWechat"/>
+		<result column="status" jdbcType="INTEGER" property="status"/>
+		<result column="mode" jdbcType="INTEGER" property="mode"/>
+		<result column="sourcePhoneNumber" jdbcType="VARCHAR" property="sourcePhoneNumber"/>
+		<result column="sourcePassword" jdbcType="VARCHAR" property="sourcePassword"/>
+		<result column="creator" jdbcType="INTEGER" property="creator"/>
+		<result column="creationDate" jdbcType="TIMESTAMP" property="creationDate"/>
+		<result column="qqRequired" jdbcType="TINYINT" property="qqRequired"/>
+		<result column="wechatRequired" jdbcType="TINYINT" property="wechatRequired"/>
+		<result column="zhimaRequired" jdbcType="TINYINT" property="zhimaRequired"/>
+		<result column="idcardInfoRequired" jdbcType="TINYINT" property="idcardInfoRequired"/>
+		<result column="idcardBackRequired" jdbcType="TINYINT" property="idcardBackRequired"/>
+		<result column="idcardRearRequired" jdbcType="TINYINT" property="idcardRearRequired"/>
+		<result column="headerRequired" jdbcType="TINYINT" property="headerRequired"/>
+		<result column="mobileContract1Required" jdbcType="TINYINT" property="mobileContract1Required"/>
+		<result column="mobileContract2Required" jdbcType="TINYINT" property="mobileContract2Required"/>
+		<result column="mobileServiceInfoRequired" jdbcType="TINYINT" property="mobileServiceInfoRequired"/>
+		<result column="cpaPrice" jdbcType="INTEGER" property="cpaPrice"/>
+		<result column="cpsPrice" jdbcType="INTEGER" property="cpsPrice"/>
+		<result column="receiveMode" jdbcType="INTEGER" property="receiveMode"/>
+		<result column="hidden" jdbcType="TINYINT" property="hidden"/>
+		<result column="taobaoRequired" jdbcType="TINYINT" property="taobaoRequired"/>
+		<result column="jingdongRequired" jdbcType="TINYINT" property="jingdongRequired"/>
+		<result column="gjjRequired" jdbcType="TINYINT" property="gjjRequired"/>
+		<result column="sjRequired" jdbcType="TINYINT" property="sjRequired"/>
+		<result column="chsiRequired" jdbcType="TINYINT" property="chsiRequired"/>
+		<association property="account" javaType="com.jbb.mgt.core.domain.Account">
+			<id column="accountId" jdbcType="INTEGER" property="accountId"/>
+			<result  column="username" jdbcType="VARCHAR" property="username"/>
+			<result  column="nickname" jdbcType="VARCHAR" property="nickname"/>
+			<result  column="phoneNumber" jdbcType="VARCHAR" property="phoneNumber"/>
+			<result  column="jbbUserId" jdbcType="INTEGER" property="jbbUserId"/>
+			<result  column="orgId" jdbcType="INTEGER" property="orgId"/>
+			<result  column="creator" jdbcType="INTEGER" property="creator"/>
+			<result  column="creationDate" jdbcType="TIMESTAMP" property="creationDate"/>
+			<result  column="deleted" jdbcType="TINYINT" property="deleted"/>
+			<result  column="freeze" jdbcType="TINYINT" property="freeze"/>
+		</association>
+		<association property="statistic" javaType="com.jbb.mgt.core.domain.ChannelStatistic">
+			<result column="clickCnt" jdbcType="INTEGER" property="clickCnt"/>
+			<result column="submitCnt" jdbcType="INTEGER" property="submitCnt"/>
+			<result column="registerCnt" jdbcType="INTEGER" property="registerCnt"/>
+			<result column="loanCnt" jdbcType="INTEGER" property="loanCnt"/>
+			<result column="uvCnt" jdbcType="INTEGER" property="uvCnt"/>
+		</association>
+	</resultMap>
+
+	<sql id="date">
+		<if test="startDate != null">
+			AND s.creation_date <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null">
+			AND s.creation_date <![CDATA[<=]]> #{endDate}
+		</if>
+	</sql>
+
+	<select id="selectChannels" resultMap="channels">
+		SELECT <include refid="channelInfo"></include> ,<include refid="channelInfoAndCreator"></include>,
+			(SELECT count(1)
+				FROM mgt_user_event_logs s
+				WHERE s.source_id = c.channel_code AND s.event_name = 'index' AND s.event_action = 'init'
+				<include refid="date"></include>
+		) AS clickCnt,
+			(SELECT count(1)
+				FROM mgt_user_event_logs s
+				WHERE s.source_id = c.channel_code AND s.event_name = 'fullInfo' AND s.event_action = 'submit'
+				<include refid="date"></include>
+			) AS submitCnt,
+			(SELECT count(DISTINCT s.cookie_id)
+				FROM mgt_user_event_logs s
+				WHERE s.source_id = c.channel_code
+				<include refid="date"></include>
+			) AS uvCnt,
+			(SELECT COUNT(1)
+				FROM mgt_users WHERE channel_code = c.channel_code
+					<if test="startDate != null">
+						AND creation_date <![CDATA[>=]]> #{startDate}
+					</if>
+					<if test="endDate != null">
+						AND creation_date <![CDATA[<=]]> #{endDate}
+					</if>
+			)as registerCnt,
+			(select COUNT(1)
+				FROM mgt_user_loan_records r WHERE r.loan_amount >0 AND r.user_id in
+					(SELECT u.user_id FROM mgt_users u WHERE u.channel_code = c.channel_code )
+						<if test="startDate != null">
+							AND r.creation_date <![CDATA[>=]]> #{startDate}
+						</if>
+						<if test="endDate != null">
+							AND r.creation_date <![CDATA[<=]]> #{endDate}
+						</if>
+			) as loanCnt
+		FROM mgt_channels c
+		JOIN mgt_accounts acc on c.creator = acc.account_id
+		WHERE c.status != 1 AND c.is_hidden = 0
+			AND c.creator in(select account_id from mgt_accounts WHERE org_id in (select org_id FROM mgt_accounts WHERE account_id = #{creator}))
+		<if test="searchText!=null">
+			AND (c.channel_name like CONCAT('%',#{searchText},'%') OR acc.username like CONCAT('%',#{searchText},'%')
+				OR acc.nickname like CONCAT('%',#{searchText},'%') )
+		</if>
+		ORDER BY c.creation_date DESC
+	</select>
+	
+	
+	<update id="frozeChannel">
+		UPDATE mgt_channels
+		SET status = 2
+		WHERE channel_code = #{channelCode}
+	</update>
+
+
+	<update id="thawChannel">
+		UPDATE mgt_channels
+		SET status = 0
+		WHERE channel_code = #{channelCode}
+	</update>
+
+	<select id="selectChannelStatisticS" resultType="com.jbb.mgt.core.domain.ChannelStatistic">
+		SELECT
+		(SELECT count(1)
+		FROM mgt_user_event_logs s
+		WHERE s.source_id = c.channel_code AND s.event_name = 'index' AND s.event_action = 'init'
+		<include refid="date"></include>
+		) AS clickCnt,
+		(SELECT count(1)
+		FROM mgt_user_event_logs s
+		WHERE s.source_id = c.channel_code AND s.event_name = 'fullInfo' AND s.event_action = 'submit'
+		<include refid="date"></include>
+		) AS submitCnt,
+		(SELECT count(DISTINCT s.cookie_id)
+		FROM mgt_user_event_logs s
+		WHERE s.source_id = c.channel_code
+		<include refid="date"></include>
+		) AS uvCnt,
+		(SELECT COUNT(1)
+		FROM mgt_users WHERE channel_code = c.channel_code
+		<if test="startDate != null">
+			AND creation_date <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null">
+			AND creation_date <![CDATA[<=]]> #{endDate}
+		</if>
+		)as registerCnt,
+		(select COUNT(1)
+		FROM mgt_user_loan_records r WHERE r.loan_amount >0 AND r.user_id in
+		(SELECT u.user_id FROM mgt_users u WHERE u.channel_code = c.channel_code )
+		<if test="startDate != null">
+			AND r.creation_date <![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate != null">
+			AND r.creation_date <![CDATA[<=]]> #{endDate}
+		</if>
+		) as loanCnt
+		FROM mgt_channels c
+		JOIN mgt_accounts acc on c.creator = acc.account_id
+		WHERE c.status != 1 AND c.is_hidden = 0
+		<if test="channelCode != null">
+			AND c.channel_code = #{channelCode}
+		</if>
+		<if test="channelCode == null">
+			AND c.creator in(select account_id from mgt_accounts WHERE org_id in (select org_id FROM mgt_accounts WHERE account_id = #{accountId}))
+			ORDER BY c.creation_date DESC
+		</if>
+	</select>
+
+</mapper> 

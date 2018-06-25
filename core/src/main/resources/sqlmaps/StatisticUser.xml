@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.StatisticUserMapper">
+
+   <resultMap id="UserMap" type="com.jbb.server.core.domain.User">
+		<id property="userId" column="userId" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="userName" column="userName" />
+		<result property="email" column="email" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="identityType" column="identityType" />
+		<result property="verified" column="verified" />
+		<result property="avatarPic" column="avatarPic" />
+		<result property="nickName" column="nickName" />
+		<result property="password" column="password" />
+		<result property="creationDate" column="creationDate" />
+		<result property="sex" column="sex" />
+		<result property="age" column="age" />
+		<result property="idcardAddress" column="idcardAddress" />
+		<result property="wechat" column="wechat" />
+		<result property="qqNumber" column="qqNumber" />
+		<result property="addressBookNumber" column="addressBookNumber" />
+		<result property="phoneAuthenticationTime" column="phoneAuthenticationTime" />
+		<result property="married" column="married" />
+		<result property="liveAddress" column="liveAddress" />
+		<result property="parentAddress" column="parentAddress" />
+		<result property="education" column="education" />
+		<result property="occupation" column="occupation" />
+		<result property="roleId" column="roleId" />
+		<result property="sourceId" column="sourceId" />
+		<collection property="properites" javaType="ArrayList"
+			ofType="com.jbb.server.core.domain.UserProperty">
+			<result property="name" column="p_name" />
+			<result property="value" column="p_value" />
+		</collection>
+	</resultMap>
+
+	<resultMap id="SourceCountsMap" type="com.jbb.server.core.domain.SourceCounts">
+		<id property="sourceId" column="sourceId" />
+		<collection property="dateCounts" javaType="ArrayList"
+			ofType="com.jbb.server.core.domain.UserCounts">
+			<result property="statisDate" column="statisDate" />
+			<result property="type" column="type" />
+			<result property="count" column="count" />
+		</collection>
+	</resultMap>
+	
+	<resultMap id="LenderCountsMap" type="com.jbb.server.core.domain.LenderCounts">
+		<id property="userId" column="userId" />
+		<collection property="dateCounts" javaType="ArrayList"
+			ofType="com.jbb.server.core.domain.UserCounts">
+			<result property="statisDate" column="statisDate" />
+			<result property="type" column="type" />
+			<result property="count" column="count" />
+		</collection>
+	</resultMap>
+	
+	<select id="countUserBySourceId"  resultType="com.jbb.server.core.domain.UserCounts">
+		SELECT date(creation_date) AS "statisDate",
+			IF(ISNULL(idcard_no),0,1) AS "type" , 
+			count(*) AS "count"
+		FROM users u 
+		WHERE u.source_id = #{sourceId} 
+		<if test="dateStr">
+			AND date(u.creation_date) = #{dateStr}
+		</if>
+		GROUP BY date(creation_date), IF(ISNULL(idcard_no),0,1);
+	</select>
+	
+	<select id="selectRecommandUsersBySourceId"  resultType="com.jbb.server.core.domain.User">
+		SELECT u.user_id as userId, u.phone_number as phoneNumber, u.user_name as userName, u.wechat
+			, u.sex, u.age, u.idcard_no as idCardNo, u.qq_number as qqNumber, u.source_id as sourceId
+			, u.creation_date as creationDate
+		FROM users u
+		WHERE u.source_id = #{sourceId}
+		<if test="dateStr">
+			AND date(u.creation_date) = #{dateStr}
+		</if>
+		ORDER BY u.creation_date DESC
+	</select>
+	
+	<select id="selectRecommandUsersBySourceIds"  resultMap="UserMap">
+		SELECT u.user_id as userId, u.phone_number as phoneNumber, u.user_name as userName, u.wechat
+			, u.sex, u.age, u.idcard_no as idCardNo, u.qq_number as qqNumber, u.source_id as sourceId
+			, u.creation_date as creationDate
+			, up.name as p_name, up.value as p_value
+		FROM users u
+		LEFT JOIN user_properties up on up.user_id = u.user_id
+		WHERE u.source_id IN
+		<foreach item="sourceId" index="index" collection="sourceIds" open="(" separator="," close=")">
+			#{sourceId}
+		</foreach>
+		<if test="dateStr">
+			AND date(u.creation_date) = #{dateStr}
+		</if>
+		ORDER BY u.creation_date DESC
+	</select>
+	
+	<select id="countUserBySourceIds"  resultType="com.jbb.server.core.domain.UserCounts">
+		SELECT date(creation_date) AS "statisDate",
+			IF(ISNULL(idcard_no),0,1) AS "type" , 
+			count(*) AS "count"
+		FROM users u 
+		WHERE u.source_id IN
+		<foreach item="sourceId" index="index" collection="sourceIds" open="(" separator="," close=")">
+			#{sourceId}
+		</foreach>
+		<if test="dateStr">
+			AND date(u.creation_date) = #{dateStr}
+		</if>
+		GROUP BY date(creation_date), IF(ISNULL(idcard_no),0,1)
+	</select>
+	
+	
+	<select id="countUsersForLender"  resultMap="LenderCountsMap">
+		SELECT 
+			t.targetUserId as userId, t.statisDate , t.type , count(1) as 'count'
+		FROM(
+			SELECT ua.user_id, ua.target_user_id as targetUserId, date(ua.creation_date) as statisDate, IF(ISNULL(u.idcard_no),0,1) as type
+			FROM user_apply_records ua
+			LEFT join users u on ua.user_id = u.user_id
+			WHERE ua.creation_date &gt;= #{start} 
+			<if test="targetUserId">
+			AND ua.target_user_id = #{targetUserId}
+			</if>
+		) t
+		GROUP BY  t.targetUserId, t.statisDate, t.type
+	</select>
+	
+	<select id="countUsersByLendId"  resultType="java.lang.Integer">
+		SELECT count(1)
+		FROM user_apply_records ua
+		WHERE ua.target_user_id = #{targetUserId}
+			<if test="targetUserId">
+			AND ua.target_user_id = #{targetUserId}
+			</if>
+			<if test="start">
+				AND ua.creation_date &gt;= #{start}
+			</if>
+			<if test="end">
+				AND ua.creation_date &lt; #{end}
+			</if>
+	</select>
+	
+	<select id="countUsersForSource"  resultMap="SourceCountsMap">
+		SELECT u.source_id as sourceId, date(creation_date) AS "statisDate",
+			IF(ISNULL(idcard_no),0,1) AS "type" , 
+			count(*) AS 'count'
+		FROM users u 
+		WHERE 1=1 AND u.source_id is not null 
+		<if test="start">
+			AND u.creation_date &gt;= #{start}
+		</if>
+		<if test="sourceIds">
+			u.source_id IN
+			<foreach item="sourceId" index="index" collection="sourceIds" open="(" separator="," close=")">
+				#{sourceId}
+			</foreach>
+		</if>
+		GROUP BY u.source_id, date(creation_date), IF(ISNULL(idcard_no),0,1)
+	</select>
+	
+	<select id="selectTargetUserIds"  resultType="java.lang.Integer">
+		SELECT ua.target_user_id as userId
+		FROM user_apply_records ua
+		WHERE ua.user_id = ${userId}
+	</select>
+	
+</mapper>

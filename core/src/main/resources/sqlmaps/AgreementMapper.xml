@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.AgreementMapper">
+	<insert id="insertAgreement">
+		INSERT INTO
+		`agreement`(`user_id`,`agreement`,`version`)
+		VALUES(#{userId},#{agreement},#{version})
+	</insert>
+
+	<select id="searchAgreement" resultType="com.jbb.server.core.domain.Agreement">
+		SELECT
+		`user_id`,`agreement`,`version`,`read_date` AS readDate FROM
+		`agreement` WHERE 1=1
+		<if test="userId!=null">
+			AND `user_id`=#{userId}
+		</if>
+		<if test="agreement!=null">
+			AND `agreement`=#{agreement}
+		</if>
+		<if test="version!=null">
+			AND `version`=#{version}
+		</if>
+	</select>
+</mapper>

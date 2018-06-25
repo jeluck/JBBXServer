@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.UserLoanRecordMapper" >
+
+	<sql id="LoanRecordDetailCols">
+		ld.loan_id,ld.op_type,ld.amount,ld.account_id,ld.op_date
+	</sql>	
+	
+	 <sql id="userApplyRecordCols">
+        c.user_id AS applyUserId , c.org_id AS orgId, c.status AS applyStatus,
+        c.assign_acc_id AS assignAccId,c.assing_date AS assingDate,c.init_acc_id AS initAccId,
+        c.init_amount AS initAmount,c.init_date AS initDate,c.final_acc_id AS finalAccId,
+        c.final_amount AS finalAmount,c.final_date AS finalDate,
+        c.creation_date AS creationData,
+        c.init_mark AS initMark, c.final_mark AS finalMark
+    </sql>
+	
+	<sql id="userLoanRecordCols">
+		   ulr.loan_id as loanId, ulr.iou_code as iouCode, 
+		   ulr.apply_id as applyId, ulr.account_id as accountId, 
+		   ulr.user_id as userId, ulr.status as status, 
+		   ulr.iou_status as iouStatus, ulr.iou_platform_id as iouPlatformId, 
+		   ulr.borrowing_amount as borrowingAmount,  ulr.collector_acc_id as collectorAccId, 
+		   ulr.annual_rate as annualRate, ulr.borrowing_date as borrowingDate, 
+		   ulr.borrowing_days as borrowingDays, ulr.repayment_date as repaymentDate, 
+		   ulr.loan_amount as loanAmount, ulr.repay_amount as repayAmount, 
+		   ulr.loan_date as loanDate, ulr.loan_acc_id AS loanAccId,
+		   ulr.update_date as updateDate, ulr.creation_date as creationDate, 
+		   ulr.actual_repayment_date as actualRepaymentDate
+	</sql>
+	
+	<resultMap id="UserLoanRecordMap" type="com.jbb.mgt.core.domain.UserLoanRecord">
+		<id property="loanId" column="loanId" />
+		<result property="iouCode" column="iouCode"/>
+		<result property="applyId" column="applyId"/>
+		<result property="accountId" column="accountId"/>
+		<result property="userId" column="userId"/>
+		<result property="status" column="status"/>
+		<result property="iouStatus" column="iouStatus"/>
+		<result property="iouPlatformId" column="iouPlatformId"/>
+		<result property="borrowingAmount" column="borrowingAmount"/>
+		<result property="annualRate" column="annualRate"/>
+		<result property="borrowingDate" column="borrowingDate"/>
+		<result property="borrowingDays" column="borrowingDays"/>
+		<result property="repaymentDate" column="repaymentDate"/>
+		<result property="loanAccId" column="loanAccId"/>
+		<result property="loanAmount" column="loanAmount"/>
+		<result property="repayAmount" column="repayAmount"/>
+		<result property="loanDate" column="loanDate"/>
+		<result property="collectorAccId" column="collectorAccId"/>
+		<result property="creationDate" column="creationDate"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="actualRepaymentDate" column="actualRepaymentDate"/>
+		<result property="platformName" column="platformName"/>
+		<association property="user" javaType="com.jbb.mgt.core.domain.User">
+			<id property="userId" column="userId" jdbcType="INTEGER" />
+			<result property="phoneNumber" column="phoneNumber" jdbcType="VARCHAR" />
+			<result property="userName" column="uUserName" jdbcType="VARCHAR"/>
+			<result property="ipArea" column="ipArea" jdbcType="VARCHAR"/>
+			<result property="sex" column="sex" jdbcType="VARCHAR"/>
+			<result property="age" column="age" jdbcType="INTEGER"/>
+			<result property="jbbUserId" column="jbbUserId" jdbcType="INTEGER"/>
+			<result property="census" column="census" jdbcType="VARCHAR"/>
+		</association>
+		<association property="account" javaType="com.jbb.mgt.core.domain.Account">
+			<id property="accountId" column="accountId" jdbcType="INTEGER" />
+			<result property="username" column="accUsername" jdbcType="VARCHAR" />
+			<result property="nickname" column="accNickName" jdbcType="VARCHAR"/>	
+		</association>
+		<association property="loanAccount" javaType="com.jbb.mgt.core.domain.Account">
+			<id property="accountId" column="loanAccId" jdbcType="INTEGER" />
+			<result property="username" column="loanUsername" jdbcType="VARCHAR" />
+			<result property="nickname" column="loanNickName" jdbcType="VARCHAR"/>		
+		</association>
+		<association property="collector" javaType="com.jbb.mgt.core.domain.Account">
+			<id property="accountId" column="collectorAccId" jdbcType="INTEGER" />
+			<result property="username" column="collectorUsername" jdbcType="VARCHAR" />
+			<result property="nickname" column="collectorNickName" jdbcType="VARCHAR"/>		
+		</association>
+		<association property="userApplyRecord" javaType="com.jbb.mgt.core.domain.UserApplyRecord">
+			<id property="applyId" column="applyId" />
+			<result property="userId" column="userId" />
+			<result property="orgId" column="orgId" />
+			<result property="status" column="applyStatus" />
+			<result property="assignAccId" column="assignAccId" />
+			<result property="assingDate" column="assingDate" />
+			<result property="initAccId" column="initAccId" />
+			<result property="initDate" column="initDate" />
+			<result property="initAmount" column="initAmount" />
+			<result property="finalAccId" column="finalAccId" />
+			<result property="finalAmount" column="finalAmount" />
+			<result property="finalDate" column="finalDate" />
+			<result property="loanAccId" column="loanAccId" />
+			<result property="loanAmount" column="loanAmount" />	
+			<result property="loanDate" column="loanDate" />
+			<result property="creationDate" column="creationDate" />
+			<result property="initMark" column="initMark" />
+			<result property="finalMark" column="finalMark"/>
+		</association>	
+		<association property="assignAccount" javaType="com.jbb.mgt.core.domain.Account">
+			<id property="accountId" column="assignAccId" jdbcType="INTEGER" />
+			<result property="username" column="assingUsername" jdbcType="VARCHAR" />
+			<result property="nickname" column="assignNickName" jdbcType="VARCHAR"/>	
+		</association>
+		<association property="initAccount" javaType="com.jbb.mgt.core.domain.Account">
+			<id property="accountId" column="initAccountId" jdbcType="INTEGER" />
+			<result property="username" column="initUsername" jdbcType="VARCHAR" />
+			<result property="nickname" column="initNickName" jdbcType="VARCHAR"/>	
+		</association>
+		<association property="finalAccount" javaType="com.jbb.mgt.core.domain.Account">
+			<id property="accountId" column="finalAccId" jdbcType="INTEGER" />
+			<result property="username" column="finalUsername" jdbcType="VARCHAR" />
+			<result property="nickname" column="finalNickName" jdbcType="VARCHAR"/>		
+		</association>
+		<association property="channel" javaType="com.jbb.mgt.core.domain.Channel">
+			<id property="channelCode" column="channelCode" jdbcType="VARCHAR" />
+			<result property="channelName" column="channelName" jdbcType="VARCHAR" />
+		</association>	
+	</resultMap>
+	
+	<insert id="insertUserLoanRecord" useGeneratedKeys="true" keyProperty="loanId">
+        INSERT INTO mgt_user_loan_records
+        	(iou_code, apply_id, account_id, user_id, status, iou_status, iou_platform_id
+        		, borrowing_amount, annual_rate, borrowing_date, repayment_date, loan_acc_id, creation_date)
+        VALUES
+        	(#{iouCode},  #{applyId},  #{accountId}, #{userId}, #{status},  #{iouStatus},  #{iouPlatformId} , #{borrowingAmount}
+        		, #{annualRate},  #{borrowingDate}, #{repaymentDate}, #{loanAccId}, #{creationDate})
+    </insert>
+    
+    
+    <update id="updateUserLoanRecord" parameterType="com.jbb.mgt.core.domain.UserLoanRecord" >
+		UPDATE mgt_user_loan_records
+		<set>
+			<if test="status != null">status = #{status},</if>
+			<if test="iouStatus != null">iou_status = #{iouStatus},</if>
+			<if test="borrowingAmount != null">borrowing_amount = #{borrowingAmount},</if>
+			<if test="annualRate != null">annual_rate = #{annualRate},</if>
+			<if test="borrowingDate != null">borrowing_date = #{borrowingDate},</if>
+			<if test="repaymentDate != null">repayment_date = #{repaymentDate},</if>
+			<if test="loanAmount != null">loan_amount = #{loanAmount},</if>
+			<if test="repayAmount != null">repay_amount = #{repayAmount},</if>
+			<if test="loanDate != null">loan_date = #{loanDate},</if>
+			<if test="loanAccId != null">loan_acc_id = #{loanAccId},</if>
+			<if test="collectorAccId != null">collector_acc_id = #{collectorAccId},</if>
+			<if test="updateDate != null">update_date = #{updateDate},</if>
+			<if test="actualRepaymentDate != null">actual_repayment_date = #{actualRepaymentDate},</if>
+			<if test="extentionDate != null">extention_date = #{extentionDate},</if>
+			<if test="iouCode != null">iou_code = #{iouCode}</if>
+		</set>
+		WHERE
+		loan_id = #{loanId}
+  </update>
+
+
+
+	<update id="updateUserLoanRecordByIouCode" parameterType="com.jbb.mgt.core.domain.UserLoanRecord" >
+		UPDATE mgt_user_loan_records
+		<set>
+			<if test="status != null">status = #{status},</if>
+			<if test="iouStatus != null">iou_status = #{iouStatus},</if>
+			<if test="borrowingAmount != null">borrowing_amount = #{borrowingAmount},</if>
+			<if test="annualRate != null">annual_rate = #{annualRate},</if>
+			<if test="borrowingDate != null">borrowing_date = #{borrowingDate},</if>
+			<if test="repaymentDate != null">repayment_date = #{repaymentDate},</if>
+			<if test="loanAmount != null">loan_amount = #{loanAmount},</if>
+			<if test="repayAmount != null">repay_amount = #{repayAmount},</if>
+			<if test="loanDate != null">loan_date = #{loanDate},</if>
+			<if test="loanAccId != null">loan_acc_id = #{loanAccId},</if>
+			<if test="collectorAccId != null">collector_acc_id = #{collectorAccId},</if>
+			<if test="updateDate != null">update_date = #{updateDate},</if>
+			<if test="actualRepaymentDate != null">actual_repayment_date = #{actualRepaymentDate},</if>
+			<if test="extentionDate != null">extention_date = #{extentionDate}</if>
+		</set>
+		WHERE
+		iou_code = #{iouCode}
+	</update>
+
+	<select id="selectUserLoanRecordByIouCode" resultType="com.jbb.mgt.core.domain.UserLoanRecord" >
+		SELECT `loan_id` as loanId, `iou_code` as iouCode, `apply_id` as applyId, `account_id` as accountId,
+		`user_id` as userId,
+		`status` as status, `iou_status` as iouStatus, `iou_platform_id` as iouPlatformId, `borrowing_amount` as borrowingAmount,
+		`annual_rate` as annualRate , `borrowing_date` as borrowingDate, `borrowing_days` as borrowingDays,
+		`repayment_date` as repaymentDate, `loan_acc_id` as loanAccId, `loan_amount` as loanAmount,
+		`loan_date` as loanDate, `collector_acc_id` as collectorAccId, `creation_date` as creationDate,
+		 `update_date` as updateDate, `actual_repayment_date` as actualRepaymentDate, `repay_amount` as repayAmount,
+		 `extention_date` as extentionDate
+		 FROM mgt_user_loan_records WHERE iou_code = #{iouCode};
+	</select>
+	
+	<select id="selectUserLoanRecords" resultMap="UserLoanRecordMap">
+		SELECT  <include refid="userLoanRecordCols"/> 
+			, <include refid="userApplyRecordCols"/> 
+			, acc.account_id AS accAccId, acc.username AS accUsername, acc.nickName AS accNickName	
+			, accC.account_id AS accCcollectorAccId, accC.username AS collectorUsername, accC.nickName AS collectorNickName
+			, accA.account_id AS accAassignAccId, accA.username AS assingUsername, accA.nickName AS assignNickName
+        	, accI.account_id AS accIinitAccId, accI.username AS initUsername, accI.nickName AS initNickName
+        	, accF.account_id AS accFfinalAccId, accF.username AS finalUsername, accF.nickName AS finalNickName
+        	, accL.account_id AS accLloanAccId, accL.username AS loanUsername, accL.nickName AS loanNickName
+        	, channel.channel_code AS channelCode, channel.channel_name as channelName
+        	, u.phone_number as phoneNumber, u.username as uUserName,  u.idcard as idcard
+        	, u.ip_address as ipAddress, u.zhima_score as zhimaScore, u.qq as qq, u.wechat
+        	, u.realname_verified as realnameVerified,u.zhima_verified as zhimaVerified, u.creation_date as userCreationDate
+        	, u.jbb_user_id AS jbbUserId,  u.ip_area as ipArea
+        	, (YEAR(NOW()) - substring(u.idCard,7,4)) as age
+			, CASE
+				WHEN substring(u.idCard,17,1)%2=1 THEN '男'
+				WHEN substring(u.idCard,17,1)%2=0 THEN '女'
+			  END AS 'sex'
+			, az.areazone as 'census'
+			, p.platform_name as platformName		
+		FROM  mgt_user_loan_records ulr
+		LEFT JOIN mgt_users u ON u.user_id = ulr.user_id
+		LEFT JOIN mgt_user_apply_records c ON c.apply_id = ulr.apply_id
+		LEFT JOIN mgt_accounts acc ON acc.account_id = ulr.account_id
+		LEFT JOIN mgt_accounts accL ON accL.account_id = ulr.loan_acc_id
+		LEFT JOIN mgt_accounts accC ON accC.account_id = ulr.collector_acc_id
+		LEFT JOIN mgt_accounts accA ON c.assign_acc_id = accA.account_id
+        LEFT JOIN mgt_accounts accI ON c.init_acc_id = accI.account_id
+        LEFT JOIN mgt_accounts accF ON c.final_acc_id = accF.account_id
+        LEFT JOIN mgt_channels channel ON channel.channel_code = u.channel_code
+        LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+        LEFT JOIN mgt_iou_platforms p ON p.iou_platform_id = ulr.iou_platform_id
+        WHERE 1=1
+        	 <if test="loanId">AND ulr.loan_id=#{loanId}</if>
+        	 <if test="accountId!=null">
+        		<choose>
+        		<when test="op=='iou'"> AND ulr.account_id = #{accountId}</when>
+        		<when test="op=='record'"> AND ulr.loan_acc_id = #{accountId}</when>
+        		<when test="op=='mgt'"> AND ulr.account_id = #{accountId}</when>
+        		<when test="op=='collection'"> AND ulr.collector_acc_id = #{accountId}</when>
+        		<when test="op=='preCollection'"> AND 1=1</when>
+        		<when test="op=='findOldUser'"> AND 1=1</when>
+	            <otherwise>AND 1 = 0</otherwise> <!-- 不传就返回空 -->
+	            </choose>
+        	 </if>
+        	 <if test="orgId!=null"> AND acc.org_id=#{orgId}</if>
+        	 <if test="statuses != null and statuses.length > 0"> 
+        		AND ulr.status IN 
+        		<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+					#{status}
+				</foreach>
+        	 </if>
+        	 <if test="iouStatuses != null and iouStatuses.length > 0"> 
+        		AND ulr.iou_status IN 
+        		<foreach item="iouStatus" index="index" collection="iouStatuses" open="(" separator="," close=")">
+					#{iouStatus}
+				</foreach>
+        	 </if>
+        	 <if test="phoneNumberSearch!=null"> AND u.phone_number LIKE CONCAT('%',#{phoneNumberSearch},'%')</if>
+        	 <if test="channelSearch!=null"> AND (channel.channel_code LIKE CONCAT('%',#{channelSearch},'%') OR channel.channel_name LIKE CONCAT('%',#{channelSearch},'%'))</if>
+        	 <if test="usernameSearch!=null"> AND u.username LIKE CONCAT('%',#{usernameSearch},'%')</if>
+        	 <if test="jbbIdSearch!=null"> AND u.jbb_user_id = CONCAT('%',#{jbbIdSearch},'%') </if>
+        	 <if test="idcardSearch!=null"> AND u.idcard LIKE CONCAT('%',#{idcardSearch},'%') </if>
+        	 <if test="iouDateType!=null">
+        		<choose>
+        		<!-- 未到期 -->
+        		<when test="iouDateType==1"> AND DATE(ulr.repayment_date) <![CDATA[>]]> DATE(now()) AND ulr.status NOT IN (-1,0,2,7,8)</when>
+        		<!-- 到期 -->
+        		<when test="iouDateType==2"> AND DATE(ulr.repayment_date) <![CDATA[=]]> DATE(now()) AND ulr.status NOT IN (-1,0,2,7,8)</when>
+        		<!-- 逾期 -->
+        		<when test="iouDateType==3"> AND DATE(ulr.repayment_date) <![CDATA[<]]> DATE(now()) AND ulr.status NOT IN (-1,0,2,7,8)</when>
+	            </choose>
+        	</if>
+        ORDER BY ulr.loan_id DESC
+	</select>
+</mapper>

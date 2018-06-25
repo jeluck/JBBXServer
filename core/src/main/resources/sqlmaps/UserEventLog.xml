@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.UserEventLogMapper">
+
+    
+    <insert id="insertEventLog">
+        INSERT INTO user_event_logs (user_id, source_id, event_name, event_action, event_label, event_value, remote_address, creation_date)
+        VALUES (#{userId}, #{sourceId}, #{eventName}, #{eventAction}, #{eventLabel}, #{eventValue}, #{remoteAddress}, #{creationDate})
+    </insert>
+    
+   
+   <select id="countEventLogByParams" resultType="java.lang.Integer">
+		SELECT count(1)
+		FROM user_event_logs l
+		where 1=1
+		<if test="userId != null">
+			AND l.user_id = #{userId}
+		</if>
+		<if test="sourceId != null">
+			AND l.source_id = #{sourceId}
+		</if>
+		<if test="eventName != null">
+			AND l.event_name = #{eventName}
+		</if>
+		<if test="eventAction != null">
+			AND l.event_action = #{eventAction}
+		</if>
+		<if test="eventLabel != null">
+			AND l.event_label = #{eventLabel}
+		</if>
+		<if test="eventValue != null">
+			AND l.event_value = #{eventValue}
+		</if>
+		<if test="start != null">
+			AND l.creation_date &gt;= #{start}
+		</if>
+		<if test="end != null">
+			AND l.creation_date &lt; #{end}
+		</if>
+	</select>
+
+</mapper>

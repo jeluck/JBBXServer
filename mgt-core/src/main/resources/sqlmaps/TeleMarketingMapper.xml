@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.TeleMarketingMapper">
+
+
+	<insert id="insertTeleMarketing" useGeneratedKeys="true" keyProperty="batchId">
+		INSERT INTO mgt_tele_marketing 
+			(account_id, cnt, valid_cnt, price, status,creation_date)
+		VALUES 
+			(#{accountId}, #{cnt}, #{validCnt}, #{price}, #{status},#{creationDate})
+	</insert>
+
+
+	<sql id="tele">
+		m.batch_id as batchId,m.account_Id as accountId,m.cnt as cnt,
+			m.valid_cnt as validCnt, m.price as price,m.status as status,
+			m.creation_date as creationDate
+	</sql>
+
+
+	<select id="selectTeleMarkByBatchId" resultType="com.jbb.mgt.core.domain.TeleMarketing">
+		SELECT <include refid="tele"/>
+		FROM mgt_tele_marketing m
+		WHERE batch_id = #{batchId}
+		<if test="test"> AND status = 2 </if>
+	</select>
+
+	<select id="selectMaxTeleMarketings" resultType="com.jbb.mgt.core.domain.TeleMarketing">
+		SELECT <include refid="tele"/>
+		FROM mgt_tele_marketing m WHERE m.batch_id in (
+			SELECT MAX(batch_id) FROM mgt_tele_marketing
+				WHERE account_id in (select account_id from mgt_accounts WHERE org_id
+					in (select org_id FROM mgt_accounts WHERE account_id = #{accountId})
+				)
+		) and m.status = 2
+	</select>
+
+	<select id="selectTeleMarketings" resultType="com.jbb.mgt.core.domain.TeleMarketing">
+		SELECT  <include refid="tele"/>
+		FROM mgt_tele_marketing m
+		where m.account_Id in(select account_id from mgt_accounts WHERE org_id in (select org_id FROM mgt_accounts WHERE account_id = #{accountId}))
+			AND m.status != 0 order by m.creation_date desc
+	</select>
+	
+	<resultMap type="com.jbb.mgt.core.domain.TeleMarketingInit" id="TeleInits">
+		<id property="id" column="id"/>
+		<result column="assign_account_id" property="assignAccountId"/>
+		<result column="init_account_id" property="initAccountId"/>
+		<result column="op_commet" property="opCommet"/>
+		<result column="op_commet_flag" property="opCommetFlag"/>
+		<result column="assign_date" property="assignDate"/>
+		<result column="update_date" property="updateDate"/>
+		<collection property="mobilDetail" ofType="com.jbb.mgt.core.domain.TeleMarketingDetail">
+			<id column="id" property="id"/>
+			<result column="batch_id" property="batchId"/>
+			<result column="telephone" property="telephone"/>
+			<result column="username" property="username"/>
+			<result column="area" property="area"/>
+			<result column="number_type" property="numberType"/>
+			<result column="charges_status" property="chargesStatus"/>
+			<result column="last_date" property="lastDate"/>
+			<result column="status" property="status"/>
+			<result column="update_date" property="updateDate"/>
+		</collection>
+		<collection property="batchInfo" ofType="com.jbb.mgt.core.domain.TeleMarketing">
+			<id column="batch_id" property="batchId"/>
+			<result column="account_id" property="accountId"/>
+			<result column="cnt" property="cnt"/>
+			<result column="valid_cnt" property="validCnt"/>
+			<result column="price" property="price"/>
+			<result column="status" property="status"/>
+			<result column="creation_date" property="creationDate"/>
+		</collection>
+	</resultMap>
+	
+	<select id="selectTeleInits" resultMap="TeleInits">
+		SELECT i.*
+		<if test="detail">
+			,d.*,m.*
+		</if>
+			FROM mgt_tele_marketing_init i 
+		<if test="detail">
+			left join mgt_tele_marketing_detail d on d.id = i.id 
+			left join mgt_tele_marketing m on d.batch_id = m.batch_id
+		</if>
+		where i.init_account_id=#{accountId} 
+		<if test="isMarked">
+			and i.op_commet_flag = #{isMarked}
+		</if>
+	</select>
+	
+	<select id="selectTeleMarkBystatus" resultType="com.jbb.mgt.core.domain.TeleMarketing">
+		SELECT  <include refid="tele"/>
+		FROM mgt_tele_marketing m
+		where m.status = #{status}  ORDER BY m.batch_id
+	</select>
+	<update id="updateTeleMarketing">
+		UPDATE mgt_tele_marketing m 
+		SET m.status = #{status},
+			m.valid_cnt = #{validCnt}
+		WHERE m.batch_id = #{batchId}
+	</update>
+	
+</mapper>

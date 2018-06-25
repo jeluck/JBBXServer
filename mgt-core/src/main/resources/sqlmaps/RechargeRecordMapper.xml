@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.RechargeRecordMapper">
+	<insert id="insertRechargeRecord">
+	INSERT INTO mgt_recharge_record 
+	(trade_no,org_id,account_id,recharge_type,status,amount,creation_date)
+	VALUES
+	(#{tradeNo},#{orgId},#{accountId},#{rechargeType},#{status},#{amount},#{creationDate})
+	</insert>
+	
+	<select id="selectRechargeRecord" resultType="com.jbb.mgt.core.domain.RechargeRecord">
+		SELECT 	c.trade_no AS tradeNo,c.org_id AS orgId,c.account_id AS accountId,c.recharge_type AS rechargeType,c.status AS status,c.amount AS amount,c.creation_date AS creationDate 
+		FROM mgt_recharge_record c
+		WHERE c.trade_no = #{tradeNo}
+	</select>
+	
+	<select id="selectRechargeRecords" resultType="com.jbb.mgt.core.domain.RechargeRecord">
+		SELECT 	c.trade_no AS tradeNo,c.org_id AS orgId,c.account_id AS accountId,c.recharge_type AS rechargeType,c.status AS status,c.amount AS amount,c.creation_date AS creationDate 
+		FROM mgt_recharge_record c
+		WHERE c.org_id = #{orgId}
+	</select>
+</mapper> 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.UserPrivMapper">
+
+	<insert id="saveUserPriv">
+		INSERT INTO user_privs(apply_user_id, user_id, priv_name, priv_value)
+		VALUES(#{applyUserId}, #{userId}, #{privName}, #{privValue})
+		ON DUPLICATE KEY UPDATE priv_value = #{privValue}, update_date = CURRENT_TIMESTAMP
+	</insert>
+
+	<select id="checkUserPrivByPrivName" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM user_privs up
+			WHERE up.user_id =#{userId} AND up.apply_user_id =#{applyUserId} 
+				AND up.priv_name =#{privName} AND up.priv_value = 1
+		)
+	</select>
+
+</mapper>

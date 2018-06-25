@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.IouIntentionalUserMapper">
+	<insert id="saveIouIntentional">
+		INSERT INTO iou_intentional_users(user_id,iou_code, status, update_date)
+		VALUES(#{userId}, #{iouCode}, #{status}, CURRENT_TIMESTAMP)
+		ON DUPLICATE KEY UPDATE status = #{status}, update_date = CURRENT_TIMESTAMP
+	</insert>
+	
+	
+	<update id="rejectIouIntentionalUsers">
+		UPDATE iou_intentional_users
+			 SET status=1, update_date = CURRENT_TIMESTAMP
+		WHERE iou_code =#{iouCode}
+			<if test="userIds!=null">
+				AND user_id IN 
+				<foreach item="userId" index="index" collection="userIds" open="(" separator="," close=")">
+					#{userId}
+				</foreach>
+			</if>
+			<if test="excludeUserId!=null">
+				AND user_id != #{excludeUserId}
+			</if>
+	</update>
+
+		
+	<select id="countIntentionalUsers" parameterType="java.lang.String" resultType="Integer">
+        SELECT COUNT(1)
+        FROM iou_intentional_users
+        WHERE iou_code = #{iouCode} AND status = 0
+    </select>
+    
+    <!-- 获取出借意向人getIntentionalUsers -->
+	<select id="getIntentionalUsers" resultType="com.jbb.server.core.domain.IntendRecord">
+		SELECT u.user_id AS "user.userId", u.nick_name AS "user.nickName", u.avatar_pic AS "user.avatarPic", 
+			u.is_verified AS "user.verified", u.user_name AS "user.userName",
+			iiu.update_date AS updateDate, iiu.status AS status, iiu.iou_code AS iouCode
+		FROM iou_intentional_users iiu
+		INNER JOIN users u on u.user_id = iiu.user_id
+		WHERE iiu.iou_code = #{iouCode} AND iiu.status != 2
+		<if test="userId!=null">
+			AND iiu.user_id = #{userId}
+		</if>
+	</select>
+	
+	
+	<select id="checkExistUserIntention" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM iou_intentional_users iiu
+			WHERE iiu.user_id =#{userId} AND iiu.iou_code =#{iouCode}
+		)
+	</select>
+	
+	<select id="selectIntentionByUserId" resultType="com.jbb.server.core.domain.IouIntention">
+		SELECT iiu.user_id AS userId, iiu.iou_code AS iouCode, iiu.status AS status , iiu.update_date AS updateDate FROM iou_intentional_users iiu
+		WHERE iiu.user_id =#{userId} AND iiu.iou_code =#{iouCode}
+	</select>
+</mapper>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.TeleMarketingDetailMapper">
+
+
+	<insert id="insertMobiles">  
+        INSERT INTO mgt_tele_marketing_detail(batch_id, telephone, username,area,number_type,
+        charges_status,last_date, status, update_date)  
+        VALUES   
+        <foreach collection="mobiles" item="item" index= "index" separator=",">  
+            (#{batchId}, #{item.telephone}, #{item.username},#{item.area},#{item.numberType},
+             #{item.chargesStatus},#{item.lastDate},#{item.status}, #{item.updateDate})  
+        </foreach>  
+	</insert>
+
+
+	<sql id="detail">
+		d.id as id, d.batch_id as batchId,d.telephone as telephone,d.username as username,
+		d.area as area, d.number_type as numberType,d.charges_status as chargesStatus,
+		d.last_date as lastDate,d.status as status,d.update_date as updateDate
+	</sql>
+
+	
+	<insert id="insertTeleInits">  
+        INSERT INTO mgt_tele_marketing_init(id, assign_account_id, init_account_id, op_commet,
+         op_commet_flag, assign_date,update_date)  
+        VALUES   
+        <foreach collection="mobileInits" item="item" index= "index" separator=",">  
+            (#{item.id}, #{item.assignAccountId}, #{item.initAccountId}, #{item.opCommet}, 
+            #{item.opCommetFlag},#{item.assignDate},#{item.updateDate})  
+        </foreach>  
+	</insert>
+	
+	
+	<insert id="updateMobile">  
+       	UPDATE mgt_tele_marketing_detail
+       	SET status = #{status}, area = #{area}, last_date = #{lastDate}, update_date = #{updateDate}
+       		, charges_status = #{chargesStatus}, number_type = #{numberType}
+       	WHERE batch_id = #{batchId} AND telephone = #{telephone}
+	</insert>
+
+	<select id="selectMobiles" resultType="com.jbb.mgt.core.domain.TeleMarketingDetail">
+		SELECT	<include refid="detail" />
+		FROM mgt_tele_marketing_detail d
+		WHERE d.batch_id = #{batchId}
+	</select>
+	
+	<select id="selectTeleMarketingByStatus" resultType="com.jbb.mgt.core.domain.TeleMarketingDetail">
+		SELECT	<include refid="detail" />
+		FROM mgt_tele_marketing_detail d
+		WHERE d.status = #{status} AND d.batch_id = #{batchId} 
+		<if test="limit != 0"> limit #{limit} </if>
+		
+	</select>
+	
+	<select id="selectMaxTeleMarketingDetail" resultMap="detailMap">
+		SELECT <include refid="detail" />,<include refid="accountInfo" />
+		FROM mgt_tele_marketing_detail d LEFT JOIN mgt_tele_marketing_init i on i.id = d.id
+			LEFT JOIN mgt_accounts acc ON i.init_account_id = acc.account_id
+		WHERE d.batch_id in(SELECT MAX(batch_id) FROM mgt_tele_marketing
+			WHERE account_id
+				in	(select account_id from mgt_accounts WHERE org_id
+					in (select org_id FROM mgt_accounts WHERE account_id = #{accountId})
+				)
+		)
+	</select>
+
+	<sql id="accountInfo">
+		acc.account_id AS accountId , acc.username AS username2 ,
+		acc.phone_number as phoneNumber,
+		acc.jbb_user_id AS jbbUserId,acc.password as password,
+		acc.org_id as orgId, acc.creator as creator,
+		acc.creation_date as creationDate,
+		acc.nickname as nickname,
+		acc.is_deleted AS deleted,acc.is_freeze AS freeze
+	</sql>
+
+	<resultMap id="detailMap" type="com.jbb.mgt.core.domain.TeleMarketingDetail">
+		<id column="id" jdbcType="INTEGER" property="id"/>
+		<result column="batchId" jdbcType="INTEGER" property="batchId"/>
+		<result column="telephone" jdbcType="VARCHAR" property="telephone"/>
+		<result column="username" jdbcType="VARCHAR" property="username"/>
+		<result column="area" jdbcType="VARCHAR" property="area"/>
+		<result column="numberType" jdbcType="VARCHAR" property="numberType"/>
+		<result column="chargesStatus" jdbcType="VARCHAR" property="chargesStatus"/>
+		<result column="lastDate" jdbcType="TIMESTAMP" property="lastDate"/>
+		<result column="status" jdbcType="INTEGER" property="status"/>
+		<result column="updateDate" jdbcType="TIMESTAMP" property="updateDate"/>
+		<association property="account" javaType="com.jbb.mgt.core.domain.Account">
+			<id column="accountId" jdbcType="INTEGER" property="accountId"/>
+			<result  column="username2" jdbcType="VARCHAR" property="username"/>
+			<result  column="nickname" jdbcType="VARCHAR" property="nickname"/>
+			<result  column="phoneNumber" jdbcType="VARCHAR" property="phoneNumber"/>
+			<result  column="jbbUserId" jdbcType="INTEGER" property="jbbUserId"/>
+			<result  column="password" jdbcType="VARCHAR" property="password"/>
+			<result  column="orgId" jdbcType="INTEGER" property="orgId"/>
+			<result  column="creator" jdbcType="INTEGER" property="creator"/>
+			<result  column="creationDate" jdbcType="TIMESTAMP" property="creationDate"/>
+			<result  column="deleted" jdbcType="TINYINT" property="deleted"/>
+			<result  column="freeze" jdbcType="TINYINT" property="freeze"/>
+		</association>
+	</resultMap>
+
+	<select id="selectTeleMarketingDetails" resultMap="detailMap">
+		SELECT <include refid="detail" />,<include refid="accountInfo" />
+		FROM mgt_tele_marketing_detail  d  LEFT JOIN mgt_tele_marketing_init i on i.id = d.id
+			LEFT JOIN mgt_accounts acc ON i.init_account_id = acc.account_id
+		WHERE d.batch_id = #{batchId}
+	</select>
+	
+	
+	<select id="selectTeleMarketingDetailsNotInit" resultType="com.jbb.mgt.core.domain.TeleMarketingDetail">
+		SELECT <include refid="detail" />
+		FROM mgt_tele_marketing_detail AS d WHERE d.batch_id = #{batchId} and (d.status = 1
+			<if test="test"> OR d.status = 5 </if> )
+		and   NOT EXISTS(SELECT id
+			FROM mgt_tele_marketing_init AS b WHERE b.id=d.id )
+	</select>
+
+	<resultMap id="IntiOp" type="com.jbb.mgt.core.domain.TeleMarketingInit">
+		<id column="id" property="id" jdbcType="INTEGER"/>
+		<result column="assignAccountId" property="assignAccountId" jdbcType="INTEGER"/>
+		<result column="initAccountId" property="initAccountId" jdbcType="INTEGER"/>
+		<result column="opCommet" property="opCommet" jdbcType="VARCHAR"/>
+		<result column="opCommetFlag" property="opCommetFlag" jdbcType="TINYINT"/>
+		<result column="assignDate" property="assignDate" jdbcType="TIMESTAMP"/>
+		<result column="updateDate" property="updateDate" jdbcType="TIMESTAMP"/>
+		<collection property="mobilDetail" javaType="com.jbb.mgt.core.domain.TeleMarketingDetail">
+			<id column="id" property="id" jdbcType="INTEGER" />
+			<result column="batchId" property="batchId" jdbcType="INTEGER"/>
+			<result column="telephone" property="telephone" jdbcType="VARCHAR"/>
+			<result column="username" property="username" jdbcType="VARCHAR"/>
+			<result column="area" property="area" jdbcType="VARCHAR"/>
+			<result column="numberType" property="numberType" jdbcType="VARCHAR"/>
+			<result column="chargesStatus" property="chargesStatus" jdbcType="VARCHAR"/>
+			<result column="lastDate" property="lastDate" jdbcType="TIMESTAMP"/>
+			<result column="status" property="status" jdbcType="INTEGER"/>
+			<result column="updateDate" property="updateDate" jdbcType="TIMESTAMP"/>
+		</collection>
+	</resultMap>
+	
+	<select id="selectMobilesByAccountId" resultMap="IntiOp">
+		SELECT <include refid="detail" /> ,i.assign_account_id as assignAccountId,
+		i.init_account_id as initAccountId, i.op_commet as opCommet,
+		i.op_commet_flag as opCommetFlag, i.assign_date as assignDate
+		FROM mgt_tele_marketing_detail d left join mgt_tele_marketing_init i
+		 on i.id = d.id
+		where i.init_account_id=#{accountId}
+	</select>
+
+
+	<update id="updateTeleMarketingInitByIdAndOpCommet">
+		UPDATE mgt_tele_marketing_init
+		SET op_commet = #{opComment},op_commet_flag = 1,
+		update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+
+
+	<sql id="init">
+		i.id as id, i.assign_account_id as assignAccountId,
+		i.init_account_id as initAccountId, i.op_commet as op_commet,
+		i.op_commet_flag as opCommetFlag,i.assign_date as assignDate,
+		i.update_date as updateDate
+	</sql>
+
+
+	<select id="selectTeleMarketingInitById" resultType="com.jbb.mgt.core.domain.TeleMarketingInit">
+		SELECT <include refid="init" />
+		FROM mgt_tele_marketing_init AS i WHERE i.id = #{id}
+	</select>
+	
+    <select id="getPhoneCount" resultType="java.lang.Integer">
+	SELECT COUNT(1) AS count 
+	FROM mgt_tele_marketing_detail c 
+	WHERE c.batch_id=#{batchId}  
+	   <if test="status != null"> AND c.status=#{status} </if>
+	</select>
+
+</mapper>

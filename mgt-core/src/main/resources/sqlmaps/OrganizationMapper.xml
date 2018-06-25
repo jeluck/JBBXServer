@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.OrganizationMapper" >
+
+	<sql id="organizationCols">
+       o.org_id AS orgId ,  o.name AS name ,  o.description AS description,  o.deleted AS deleted,o.count,
+       o.sms_sign_name AS smsSignName,o.sms_template_id AS smsTemplateId
+    </sql>
+    <resultMap id="OrgnazationMap" type="com.jbb.mgt.core.domain.Organization">
+		<id property="orgId" column="orgId" />
+		<result property="name" column="name" />
+		<result property="deleted" column="deleted" />
+		<result property="count" column="count" />
+		<result property="smsSignName" column="smsSignName" />
+		<result property="smsTemplateId" column="smsTemplateId" />
+		<association property="dataFlowSetting" javaType="com.jbb.mgt.core.domain.DataFlowSetting">
+		<id column="orgId" jdbcType="INTEGER" property="orgId" />
+		<result column="dataFlowId" jdbcType="INTEGER" property="dataFlowId" />
+		<result column="minValue" jdbcType="INTEGER" property="minValue"/>
+		<result column="maxAvlue" jdbcType="INTEGER" property="maxAvlue" />
+		<result column="closed" jdbcType="TINYINT" property="closed"/>
+		</association>
+		<association property="recharge" javaType="com.jbb.mgt.core.domain.OrgRecharges">
+		<id column="orgId" jdbcType="INTEGER" property="orgId" />
+		<result column="totalDataAmount" jdbcType="INTEGER" property="totalDataAmount" />
+		<result column="totalSmsAmount" jdbcType="INTEGER" property="totalSmsAmount"/>
+		<result column="totalDataExpense" jdbcType="INTEGER" property="totalDataExpense" />
+		<result column="totalSmsExpense" jdbcType="INTEGER" property="totalSmsExpense"/>
+		</association>
+	</resultMap>
+	<insert id="insertOrganization" useGeneratedKeys="true"
+		keyProperty="orgId">
+		INSERT INTO mgt_organizations
+			(name, description)
+		VALUES 
+			(#{name}, #{description})
+	</insert>
+	
+	<update id="deleteOrganization">
+		UPDATE mgt_organizations
+		SET deleted = 1
+		WHERE org_id = #{orgId}
+	</update>
+	
+	
+	<update id="updateOrganization">
+		UPDATE mgt_organizations
+		SET name =  #{name}, description=#{description}
+		WHERE org_id = #{orgId}
+	</update>
+	
+	<select id="selectOrganizationById" resultType="com.jbb.mgt.core.domain.Organization">
+		SELECT <include refid="organizationCols"/>
+		FROM  mgt_organizations o
+		WHERE o.org_id = #{orgId}
+	</select>
+	
+	<select id="selectOrganizations" resultType="com.jbb.mgt.core.domain.Organization">
+		SELECT o.org_id AS orgId,  o.name AS name ,  o.description AS description,  o.deleted AS deleted
+		FROM  mgt_organizations o
+	</select>
+	
+	<select id="getAllOrganizations" resultMap="OrgnazationMap">
+		SELECT <include refid="organizationCols"/>,m.total_data_amount AS totalDataAmount,m.total_sms_amount AS totalSmsAmount,
+		m.total_data_expense AS totalDataExpense,m.total_sms_expense AS totalSmsExpense,
+		r.is_closed AS closed , r.dflow_id AS dataFlowId,r.min_value AS minValue ,r.max_value AS maxAvlue
+		FROM  mgt_organizations o
+		LEFT JOIN  mgt_account_dflow_settings r ON o.org_id = r.org_id
+		LEFT JOIN  mgt_org_recharges m ON o.org_id = m.org_id
+		
+	</select>
+	
+ 
+</mapper> 

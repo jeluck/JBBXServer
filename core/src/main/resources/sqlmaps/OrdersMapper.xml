@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.OrdersMapper">
+
+
+
+	<insert id="insertUserProductCount">
+		INSERT INTO user_product_count (user_id, product_name,count)
+		VALUES (#{userId}, #{productName},#{count})
+	</insert>
+	
+	<select id="selectUserProductCountForUpdate" resultType="java.lang.Integer">
+		SELECT count
+		FROM user_product_count u
+		WHERE u.user_id = #{userId}
+		AND u.product_name = #{productName} FOR UPDATE
+	</select>
+	
+	<select id="selectUserProductCount" resultType="java.lang.Integer">
+		SELECT count
+		FROM user_product_count u
+		WHERE u.user_id = #{userId}
+			AND u.product_name = #{productName}
+	</select>
+	
+
+	<update id="increaseUserProductCount">
+		UPDATE user_product_count u
+		SET u.count = u.count+1
+		WHERE u.user_id = #{userId}
+			AND u.product_name = #{productName}
+	</update>
+
+
+	<update id="reduceUserProductCount">
+		UPDATE user_product_count u
+		SET u.count = u.count-1
+		WHERE u.user_id = #{userId}
+			AND u.product_name = #{productName}
+	</update>
+	
+	<insert id="insertOrder">
+		INSERT INTO orders (order_no, product_name, total_fee, ip_address, pay_type, creation_date,pay_date,user_id)
+		VALUES (#{orderNo}, #{productName}, #{totalFee}, #{ipAddress}, #{payType}, #{creationDate}, #{payDate}, #{userId})
+	</insert>
+	
+	<update id="updateOrder" parameterType="com.jbb.server.core.domain.Order">
+		UPDATE orders
+		SET product_name = #{productName},
+		total_fee = #{totalFee},
+		ip_address = #{ipAddress},
+		pay_type = #{payType},
+		pay_date = #{payDate},
+		creation_date = #{creationDate},
+		user_id = #{userId}
+		WHERE order_no = #{orderNo}
+	</update>
+	
+	<select id="selectOrder" resultType="com.jbb.server.core.domain.Order">
+		SELECT order_no as orderNo, product_name as productName, total_fee as totalFee, 
+			ip_address as ipAddress, pay_type as payType, creation_date as creationDate, pay_date as payDate, user_id as userId
+		FROM orders
+		WHERE order_no = #{orderNo}
+	</select>
+
+</mapper>

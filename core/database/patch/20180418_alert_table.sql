@@ -1,0 +1,1 @@
+ALTER TABLE user_apply_records ADD COLUMN point int;

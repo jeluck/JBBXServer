@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.DataYxUrlsMapper">
+
+    <insert id="insertDataYxUrls">
+        INSERT INTO mgt_data_yx_urls
+        (user_id, report_type, h5_url, creation_date)
+        VALUES
+        (#{userId}, #{reportType}, #{h5Url},#{creationDate})
+    </insert>
+
+    <update id="updateDataYxUrls">
+        UPDATE mgt_data_yx_urls
+        SET h5_url = #{h5Url}, creation_date = #{creationDate}
+        WHERE user_id = #{userId} AND report_type = #{reportType}
+    </update>
+
+    <select id="selectDataYxUrlsByUserIdAndReportType" resultType="com.jbb.mgt.core.domain.DataYxUrls">
+        SELECT d.user_id as userId ,d.report_type as reportType,
+        d.h5_url as h5Url, d.creation_date as creationDate
+        FROM mgt_data_yx_urls d
+        WHERE d.user_id = #{userId} and d.report_type = #{reportType}
+    </select>
+
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.server.core.dao.mapper.UserLoginLogsMapper" >
+  <resultMap id="BaseResultMap" type="com.jbb.server.core.domain.UserLoginLog" >
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+    <result column="platform" property="platform" jdbcType="VARCHAR" />
+    <result column="remote_address" property="remoteAddress" jdbcType="VARCHAR" />
+    <result column="login_time" property="loginTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <insert id="insert" parameterType="com.jbb.server.core.domain.UserLoginLog" >
+    insert into user_login_logs (user_id, platform, remote_address, 
+      login_time)
+    values (#{userId,jdbcType=INTEGER}, #{platform,jdbcType=VARCHAR}, #{remoteAddress,jdbcType=VARCHAR}, 
+      #{loginTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.jbb.server.core.domain.UserLoginLog" >
+    insert into user_login_logs
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        user_id,
+      </if>
+      <if test="platform != null" >
+        platform,
+      </if>
+      <if test="remoteAddress != null" >
+        remote_address,
+      </if>
+      <if test="loginTime != null" >
+        login_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="platform != null" >
+        #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="remoteAddress != null" >
+        #{remoteAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="loginTime != null" >
+        #{loginTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+</mapper>

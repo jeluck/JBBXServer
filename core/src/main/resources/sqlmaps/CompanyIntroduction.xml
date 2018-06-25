@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.CompanyIntroductionMapper">
+	<sql id="CompanyIntroductionCols">
+		ci.corporate_name as corporateName, ci.introduce as introduce, ci.about_us as aboutUs,
+		ci.qq_group as qqGroup, ci.establishment_time as establishmentTime
+	</sql>
+	
+	<select id="selectCompanyIntroduction" resultType="com.jbb.server.core.domain.CompanyIntroduction">
+		SELECT <include refid="CompanyIntroductionCols" />
+		FROM company_introduction AS ci
+		Limit 1
+	</select>
+
+</mapper>

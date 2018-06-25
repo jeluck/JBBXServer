@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.UserMapper" >
+
+	<sql id="userCols">
+        u.user_Id as userId, u.jbb_user_id as jbbUserId, u.ip_area as ipArea, u.username AS userName , u.phone_number AS phoneNumber ,  
+		u.idcard AS idCard,u.ip_address AS ipAddress,u.zhima_score AS zhimaScore,
+		u.qq,u.wechat AS wechat,u.channel_code AS channelCode,u.idcard_rear AS idcardRear,u.idcard_back AS idcardBack,u.idcard_info AS idcardInfo,
+		u.vidoe_screen_shot AS vidoeScreenShot,u.platform AS platform,u.mobile_manufacture AS mobileManufacture,
+		u.idcard_address AS idcardAddress,u.race AS race,
+		u.contract1_relation AS contract1Relation,u.contract1_username AS contract1Username,u.contract1_phonenumber AS contract1Phonenumber,
+		u.contract2_relation AS contract2Relation,u.contract2_username AS contract2Username,u.contract2_phonenumber AS contract2Phonenumber,
+		u.realname_verified AS realnameVerified,u.mobile_verified AS mobileVerified,u.zhima_verified AS zhimaVerified,u.jingdong_verified AS jingdongVerified,
+		u.si_verified AS siVerified,u.gjj_verified AS gjjVerified,u.chsi_verified AS chsiVerified,
+		u.creation_date AS creationDate,
+		(YEAR(NOW()) - substring(u.idCard,7,4)) as age,
+		CASE
+			WHEN substring(u.idCard,17,1)%2=1 THEN '男'
+			WHEN substring(u.idCard,17,1)%2=0 THEN '女'
+		END AS 'sex'
+    </sql>
+
+	<resultMap id="UserMap" type="com.jbb.mgt.core.domain.User">
+		<id property="userId" column="userId" />
+		<result property="jbbUserId" column="jbbUserId" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="userName" column="userName" />
+		<result property="sex" column="sex" />
+		<result property="age" column="age" />
+		<result property="census" column="census" />
+		<result property="email" column="email" />
+		<result property="idCard" column="idCard" />
+		<result property="ipAddress" column="ipAddress" />
+		<result property="ipArea" column="ipArea" />
+		<result property="zhimaScore" column="zhimaScore" />
+		<result property="qq" column="qq" />
+		<result property="wechat" column="wechat" />
+		<result property="channelCode" column="channelCode" />
+		<result property="realnameVerified" column="realnameVerified" />
+		<result property="mobileVerified" column="mobileVerified" />
+		<result property="zhimaVerified" column="zhimaVerified" />
+		<result property="jingdongVerified" column="jingdongVerified" />
+		<result property="siVerified" column="siVerified" />
+		<result property="gjjVerified" column="gjjVerified" />
+		<result property="chsiVerified" column="chsiVerified" />
+		<result property="creationDate" column="creationDate" />
+		<result property="idcardRear" column="idcardRear" />
+		<result property="idcardBack" column="idcardBack" />
+		<result property="idcardInfo" column="idcardInfo" />
+		<result property="vidoeScreenShot" column="vidoeScreenShot" />
+		<result property="platform" column="platform" />
+		<result property="mobileManufacture" column="mobileManufacture" />
+		<result property="idcardAddress" column="idcardAddress" />
+		<result property="race" column="race" />
+		<result property="applyId" column="applyId" />
+		<result property="contract1Relation" column="contract1Relation" />
+		<result property="contract1Username" column="contract1Username" />
+		<result property="contract1Phonenumber" column="contract1Phonenumber" />
+		<result property="contract2Relation" column="contract2Relation" />
+		<result property="contract2Username" column="contract2Username" />
+		<result property="contract2Phonenumber" column="contract2Phonenumber" />
+		<association property="channels" javaType="com.jbb.mgt.core.domain.Channel">
+		<id column="channelCode" jdbcType="VARCHAR" property="channelCode" />
+		<result column="channelName" jdbcType="VARCHAR" property="channelName"/>
+		</association>
+	</resultMap>
+
+	<insert id="insertUser" useGeneratedKeys="true" keyProperty="userId">
+		INSERT INTO mgt_users 
+			(`username`,`phone_number`,`idcard`,`ip_address`, ip_area, `zhima_score`,`qq`,`wechat`,`channel_code`,
+			`realname_verified`,`mobile_verified`,`zhima_verified`,`platform`, `mobile_manufacture`,`creation_date`)
+		VALUES 
+			(#{userName}, #{phoneNumber}, #{idCard}, #{ipAddress}, #{ipArea}, #{zhimaScore},#{qq},#{wechat},#{channelCode},
+			#{realnameVerified},#{mobileVerified},#{zhimaVerified},#{platform}, #{mobileManufacture},now())
+	</insert>
+
+	<select id="selectUserById" resultMap="UserMap">
+		SELECT <include refid="userCols"/> , az.areazone as 'census'
+		FROM  mgt_users as u
+		LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+		WHERE u.user_Id = #{userId}
+	</select>
+
+	<select id="selectUserByJbbUserId" resultMap="UserMap">
+		select <include refid="userCols"/> , t.org_id
+		from mgt_users u
+		join (
+		select a.org_id, c.channel_code
+		from mgt_accounts a
+		join mgt_channels c on  c.creator = a.account_id
+		where a.org_id = #{orgId} or a.org_id=1
+		) t on u.channel_code = t.channel_code
+		where u.jbb_user_id = #{jbbUserId}
+		order by org_id desc
+		limit 1
+	</select>
+
+	<select id="selectUserByApplyId" resultMap="UserMap">
+		SELECT <include refid="userCols"/> 	, az.areazone as 'census'
+		FROM  mgt_user_apply_records ua
+		LEFT JOIN mgt_users as u ON u.user_id =ua.user_id
+		LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+		WHERE u.user_id = ua.user_id AND ua.apply_id = #{applyId}
+	</select>
+
+	<select id="selectUsers" resultMap="UserMap">
+		SELECT u.user_Id as userId, INSERT(u.username, 2, 10, '**')   AS userName , INSERT(u.phone_number, 4, 4, '****') AS phoneNumber ,
+		u.ip_address AS ipAddress,u.zhima_score AS zhimaScore,u.channel_code AS channelCode,u.realname_verified AS realnameVerified,
+		u.mobile_verified AS mobileVerified,u.zhima_verified AS zhimaVerified,u.jingdong_verified AS jingdongVerified,
+		u.si_verified AS siVerified,u.gjj_verified AS gjjVerified,u.chsi_verified AS chsiVerified,u.creation_date AS creationDate,
+		u.vidoe_screen_shot AS vidoeScreenShot,u.platform AS platform,u.mobile_manufacture AS mobileManufacture,
+		u.idcard_address AS idcardAddress,u.race AS race,
+		(YEAR(NOW()) - substring(u.idCard,7,4)) as age,
+		CASE
+			WHEN substring(u.idCard,17,1)%2=1 THEN '男'
+			WHEN substring(u.idCard,17,1)%2=0 THEN '女'
+		END AS 'sex', az.areazone as 'census'
+		FROM  mgt_users as u
+		LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+		WHERE u.channel_code = #{channelCode}
+		<if test="startDate!=null">
+			AND u.creation_date<![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate!=null">
+			AND u.creation_date<![CDATA[<=]]> #{endDate}
+		</if>
+	</select>
+
+	<select id="selectUserDetails" resultMap="UserMap">
+		SELECT DISTINCT <include refid="userCols"/>,apply.apply_id AS applyId, az.areazone as 'census',channel.`channel_name` as 'channelName'
+		FROM  mgt_users as u
+		LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+		LEFT JOIN mgt_user_apply_records apply ON apply.`user_id`=u.`user_id`
+		LEFT JOIN  mgt_channels channel ON u.`channel_code`=channel.`channel_code`
+        LEFT JOIN  mgt_accounts acc ON channel.creator = acc.account_id
+        WHERE apply.org_id = #{orgId}
+        <if test="channelCode!=null and channelCode!=''">
+       		AND u.`channel_code`=#{channelCode}
+        </if>
+        <if test="startDate!=null">
+			AND u.creation_date<![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate!=null">
+			AND u.creation_date<![CDATA[<=]]> #{endDate}
+		</if>
+        <choose>
+            <when test="isGetJbbChannels==true">  <!--  帮帮导流 -->
+            	AND acc.org_id=1
+                AND apply.org_id != acc.org_id
+            </when>
+            <otherwise>
+                AND apply.org_id = acc.org_id <!-- 自有渠道  -->
+            </otherwise>
+        </choose>
+        AND channel.is_hidden=0 AND channel.status!=1
+	</select>
+
+	<select id="countUserByChannelCode"  resultType="java.lang.Integer">
+		SELECT count('x')
+		FROM  mgt_users as u
+		WHERE u.channel_code = #{channelCode}
+		<if test="startDate!=null">
+			AND u.creation_date<![CDATA[>=]]> #{startDate}
+		</if>
+		<if test="endDate!=null">
+			AND u.creation_date<![CDATA[<=]]> #{endDate}
+		</if>
+	</select>
+
+
+	<select id="selectUser" resultMap="UserMap">
+		SELECT <include refid="userCols"/>
+		FROM  mgt_users as u
+		JOIN mgt_channels AS c ON c.channel_code=u.channel_code
+		JOIN mgt_accounts AS a ON a.account_id=c.creator
+		WHERE a.org_id=#{orgId} AND u.phone_number = #{phoneNumber}
+		LIMIT 1
+	</select>
+
+	<select id="selectUserByPhoneNumber" resultMap="UserMap">
+		SELECT <include refid="userCols"/> 	, az.areazone as 'census'
+		FROM mgt_users as u
+		LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+		WHERE u.phone_number = #{phoneNumber} ORDER BY creation_date DESC
+	</select>
+
+	<update id="updateUser">
+	  	UPDATE mgt_users
+        <trim prefix="set" suffixOverrides=",">
+        <if test="userName != null and userName != ''">username = #{userName},</if>
+        <if test="idCard != null and idCard != ''">idcard = #{idCard},</if>
+        <if test="jbbUserId != null and jbbUserId != ''">jbb_user_id = #{jbbUserId},</if>
+        <if test="ipAddress != null and ipAddress != ''">ip_address = #{ipAddress},</if>
+        <if test="zhimaScore != null and zhimaScore != ''">zhima_score = #{zhimaScore},</if>
+        <if test="qq != null and qq != ''">qq = #{qq},</if>
+        <if test="wechat != null and wechat != ''">wechat = #{wechat},</if>
+        <if test="realnameVerified != null and realnameVerified != ''">realname_verified = #{realnameVerified},</if>
+        <if test="mobileVerified != null and mobileVerified != ''">mobile_verified = #{mobileVerified},</if>
+        <if test="zhimaVerified != null and zhimaVerified != ''">zhima_verified = #{zhimaVerified},</if>
+        <if test="jingdongVerified != null and jingdongVerified != ''">jingdong_verified = #{jingdongVerified},</if>
+        <if test="siVerified != null and siVerified != ''">si_verified = #{siVerified},</if>
+        <if test="gjjVerified != null and gjjVerified != ''">gjj_verified = #{gjjVerified},</if>
+         <if test="chsiVerified != null and chsiVerified != ''">chsi_verified = #{chsiVerified},</if>
+        <if test="contract1Relation != null and contract1Relation != ''">contract1_relation = #{contract1Relation},</if>
+        <if test="contract1Username != null and contract1Username != ''">contract1_username = #{contract1Username},</if>
+        <if test="contract1Phonenumber != null and contract1Phonenumber != ''">contract1_phonenumber = #{contract1Phonenumber},</if>
+        <if test="contract2Relation != null and contract2Relation != ''">contract2_relation = #{contract2Relation},</if>
+        <if test="contract2Username != null and contract2Username != ''">contract2_username = #{contract2Username},</if>
+        <if test="contract2Phonenumber != null and contract2Phonenumber != ''">contract2_phonenumber = #{contract2Phonenumber},</if>
+        <if test="idcardRear != null and idcardRear != ''">idcard_rear = #{idcardRear},</if>
+        <if test="idcardBack != null and idcardBack != ''">idcard_back = #{idcardBack},</if>
+        <if test="idcardInfo != null and idcardInfo != ''">idcard_info = #{idcardInfo},</if>
+		<if test="vidoeScreenShot != null and vidoeScreenShot != ''">vidoe_screen_shot = #{vidoeScreenShot},</if>
+		<if test="idcardAddress != null and idcardAddress != ''">idcard_address = #{idcardAddress},</if>
+		<if test="race != null and race != ''">race = #{race}</if>
+       </trim>
+        WHERE
+      		user_id =#{userId}
+
+	</update>
+
+	<insert id="insertUserKey">
+		INSERT INTO mgt_user_keys (user_key,user_id,application_id,expiry, is_deleted)
+		VALUES (#{userKey},#{userId},#{applicationId},#{expiry}, #{deleted})
+	</insert>
+
+	<delete id="deleteUserKeyByUserId">
+		DELETE FROM mgt_user_keys WHERE user_id=#{userId}
+	</delete>
+
+	<delete id="deleteUserKey">
+		DELETE FROM mgt_user_keys WHERE user_key=#{userKey}
+	</delete>
+
+	<select id="selectUserKeyByUserIdAndAppId" resultType="com.jbb.mgt.core.domain.UserKey">
+		SELECT user_id AS "userId", user_key AS "userKey",application_id AS "applicationId", expiry, is_deleted AS "deleted"
+		FROM mgt_user_keys
+		WHERE user_id=#{userId} and application_id=#{applicationId}
+	</select>
+
+	<select id="selectUserByUserKey" resultMap="UserMap">
+		SELECT  <include refid="userCols"/>
+		, k.user_key as 'key.userKey', k.expiry as 'key.expiry', k.is_deleted as 'key.deleted'
+		, k.application_id as 'key.applicationId'
+		FROM mgt_user_keys k, mgt_users u
+		WHERE u.user_id = k.user_id AND k.user_key = #{userKey}
+			AND k.expiry &gt;= #{expiry} AND k.is_deleted = 0
+	</select>
+
+	<update id="updateUserKey">
+		UPDATE mgt_user_keys 
+		SET user_key = #{userKey}, expiry = #{expiry}, is_deleted =#{deleted}
+		WHERE user_id = #{userId} AND  application_id =#{applicationId}
+	</update>
+
+	<select id="getPushCount" resultType="java.lang.Integer">
+	SELECT COUNT(1) AS count
+	FROM mgt_users c
+	WHERE c.channel_code in (SELECT channel_code FROM mgt_channels
+	       WHERE creator in (SELECT cc.account_id FROM mgt_accounts cc WHERE org_id = #{orgId}))
+	      <if test="type != null"> AND  to_days(c.creation_date) = to_days(now())</if>
+	</select>
+	
+	
+	<select id="checkUserApplied" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM mgt_user_apply_records ua
+			WHERE ua.user_id = #{userId}  AND ua.org_id != 1
+			<if test="start !=null "> 
+				AND ua.creation_date &gt;= #{start} 
+			</if>
+		)
+	</select>
+	
+	<select id="checkUserExistInOrg" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM mgt_users u 
+			JOIN mgt_channels c on u.channel_code = c.channel_code
+			JOIN mgt_accounts acc on c.creator = acc.account_id
+			WHERE acc.org_id = #{orgId} 
+			<if test="phoneNumber !=null "> 
+				AND u.phone_number = #{phoneNumber} 
+			</if>
+			<if test="jbbUserId !=null "> 
+				AND u.jbb_user_id = #{jbb_user_id} 
+			</if>
+			<if test="idCard !=null "> 
+				AND u.idcard = #{idCard} 
+			</if>
+		)
+	</select>
+
+</mapper> 

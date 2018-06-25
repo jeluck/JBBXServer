@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+<context:annotation-config />
+    <!-- In this example, the encryption password will be read from an        -->
+    <!-- environment variable called "JBB_ENCRYPTION_PASSWORD" which, once    --> 
+    <!-- the application has been started, could be safely unset.             -->
+    <!--                                                                      -->
+    <bean id="environmentVariablesConfiguration"
+         class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+         <property name="algorithm" value="PBEWithSHA1AndDESede" />
+         <!--property name="passwordSysPropertyName" value="JBB_ENCRYPTION_PASSWORD" /-->
+         <property name="passwordEnvName" value="JBB_ENCRYPTION_PASSWORD" />
+    </bean>
+    
+    <!--                                                                      -->
+    <!-- The will be the encryptor used for decrypting configuration values.  -->
+    <!--                                                                      -->
+    <bean id="configurationEncryptor"
+        class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+        <property name="config" ref="environmentVariablesConfiguration" />
+    </bean>
+
+    <!--                                                                      -->
+    <!-- The EncryptablePropertyPlaceholderConfigurer will read the           -->
+    <!-- .properties files and make their values accessible as ${var}         -->
+    <!--                                                                      -->
+    <!-- Our "configurationEncryptor" bean (which implements                  --> 
+    <!-- org.jasypt.encryption.StringEncryptor) is set as a constructor arg.  -->
+    <!--                                                                      -->
+    <bean id="propertyConfigurer"
+        class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+        <constructor-arg ref="configurationEncryptor" />
+        <property name="locations">
+            <list>
+                <value>file:${JBB_MGT_HOME}/config/properties/db.properties</value>
+                <value>file:${JBB_MGT_HOME}/config/properties/core.properties</value>
+            </list>
+        </property>
+    </bean>
+ 
+    <bean id="dataSourceImpl" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+        <property name="defaultAutoCommit" value="true"/>
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.user}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxActive" value="${jdbc.maxActiveConnections}"/>
+        <property name="maxIdle" value="20"/>
+        <property name="maxWait" value="10000"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="validationInterval" value="30000"/>
+        <property name="validationQuery" value="${jdbc.validationQuery}"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="minEvictableIdleTimeMillis" value="30000"/>
+        <property name="timeBetweenEvictionRunsMillis" value="30000"/>
+    </bean>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
+        <property name="targetDataSource" ref="dataSourceImpl"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSourceImpl"/>
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+</beans>

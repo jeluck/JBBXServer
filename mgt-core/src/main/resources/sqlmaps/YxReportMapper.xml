@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.YxReportMapper" >
+
+	<insert id="saveReportInfo">
+		INSERT INTO mgt_data_yx_report 
+			(task_id, user_id, apply_id, report_type, status, token, creation_date)
+		VALUES 
+			(#{taskId}, #{userId}, #{applyId}, #{reportType}, #{status}, #{token},  #{creationDate})
+		ON DUPLICATE KEY UPDATE 
+			status = #{status}, token = #{token}, user_id = #{userId}, apply_id = #{applyId}
+	</insert>
+	
+	
+	<select id="selectReport" resultType="com.jbb.mgt.core.domain.YxReport">
+		SELECT r.task_id as taskId, r.user_id as userId, r.apply_id as applyId, r.report_type as reportType, 
+			r.status as status, r.token as token, r.creation_date as creationDate
+		FROM mgt_data_yx_report r
+		WHERE 1=1 
+		<if test="taskId"> 
+			AND r.task_id = #{taskId}
+		</if>
+		<if test="userId"> 
+			AND r.user_id = #{userId}
+		</if>
+		<if test="applyId"> 
+			AND r.apply_id = #{applyId}
+		</if>
+		<if test="reportType"> 
+			AND r.report_type = #{reportType}
+		</if>
+		ORDER BY r.status DESC, r.creation_date DESC
+		LIMIT 1
+	</select>
+	
+</mapper>

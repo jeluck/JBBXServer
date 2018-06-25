@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.UserApplyRecordsSpcMapper" >
+   <sql id="userCols">
+        u.user_Id as userId, u.jbb_user_id as jbbUserId, u.ip_area as ipArea, u.username AS userName , u.phone_number AS phoneNumber ,  
+		u.idcard AS idCard,u.ip_address AS ipAddress,u.zhima_score AS zhimaScore,
+		u.qq,u.wechat AS wechat,u.channel_code AS channelCode,u.idcard_rear AS idcardRear,u.idcard_back AS idcardBack,u.idcard_info AS idcardInfo,
+		u.vidoe_screen_shot AS vidoeScreenShot,u.platform AS platform,u.mobile_manufacture AS mobileManufacture,
+		u.idcard_address AS idcardAddress,u.race AS race,
+		u.contract1_relation AS contract1Relation,u.contract1_username AS contract1Username,u.contract1_phonenumber AS contract1Phonenumber,
+		u.contract2_relation AS contract2Relation,u.contract2_username AS contract2Username,u.contract2_phonenumber AS contract2Phonenumber,
+		u.realname_verified AS realnameVerified,u.mobile_verified AS mobileVerified,u.zhima_verified AS zhimaVerified,u.jingdong_verified AS jingdongVerified,
+		u.si_verified AS siVerified,u.gjj_verified AS gjjVerified,u.chsi_verified AS chsiVerified,
+		u.creation_date AS creationDate,
+		(YEAR(NOW()) - substring(u.idCard,7,4)) as age,
+		CASE
+			WHEN substring(u.idCard,17,1)%2=1 THEN '男'
+			WHEN substring(u.idCard,17,1)%2=0 THEN '女'
+		END AS 'sex'
+    </sql>
+
+	<resultMap id="UserApplyRecordsSpc" type="com.jbb.mgt.core.domain.UserApplyRecordsSpc">
+		<result column="userId" jdbcType="INTEGER" property="userId" />
+		<result column="accountId" jdbcType="INTEGER" property="accountId"/>
+		<result column="creationDate" jdbcType="TIMESTAMP" property="creationDate"/>
+		<association property="user" javaType="com.jbb.mgt.core.domain.User">
+		<id property="userId" column="userId" />
+		<result property="jbbUserId" column="jbbUserId" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="userName" column="userName" />
+		<result property="sex" column="sex" />
+		<result property="age" column="age" />
+		<result property="census" column="census" />
+		<result property="email" column="email" />
+		<result property="idCard" column="idCard" />
+		<result property="ipAddress" column="ipAddress" />
+		<result property="ipArea" column="ipArea" />
+		<result property="zhimaScore" column="zhimaScore" />
+		<result property="qq" column="qq" />
+		<result property="wechat" column="wechat" />
+		<result property="channelCode" column="channelCode" />
+		<result property="realnameVerified" column="realnameVerified" />
+		<result property="mobileVerified" column="mobileVerified" />
+		<result property="zhimaVerified" column="zhimaVerified" />
+		<result property="jingdongVerified" column="jingdongVerified" />
+		<result property="siVerified" column="siVerified" />
+		<result property="gjjVerified" column="gjjVerified" />
+		<result property="chsiVerified" column="chsiVerified" />
+		<result property="creationDate" column="creationDate" />
+		<result property="idcardRear" column="idcardRear" />
+		<result property="idcardBack" column="idcardBack" />
+		<result property="idcardInfo" column="idcardInfo" />
+		<result property="vidoeScreenShot" column="vidoeScreenShot" />
+		<result property="platform" column="platform" />
+		<result property="mobileManufacture" column="mobileManufacture" />
+		<result property="idcardAddress" column="idcardAddress" />
+		<result property="race" column="race" />
+		<result property="applyId" column="applyId" />
+		<result property="contract1Relation" column="contract1Relation" />
+		<result property="contract1Username" column="contract1Username" />
+		<result property="contract1Phonenumber" column="contract1Phonenumber" />
+		<result property="contract2Relation" column="contract2Relation" />
+		<result property="contract2Username" column="contract2Username" />
+		<result property="contract2Phonenumber" column="contract2Phonenumber" />
+		</association>
+</resultMap>
+	<insert id="insertUserApplay">
+		INSERT INTO mgt_user_apply_records_spc 
+			(user_id,account_id)
+		VALUES 
+			(#{userId}, #{accountId})
+	</insert>
+   
+   <select id="selectAppliesByAccountId" resultMap="UserApplyRecordsSpc">
+		SELECT  c.user_id AS userId,c.account_id AS accountId,c.creation_date AS creationDate,az.areazone as 'census',<include refid="userCols"/>				
+		FROM  mgt_user_apply_records_spc c 
+		LEFT JOIN mgt_users u ON c.user_id = u.user_id 
+		LEFT JOIN areazones az ON left(u.idCard,6) = az.zone
+		WHERE 1=1
+		<if test="accountId!=null"> AND c.account_id = #{accountId}</if> 
+		<if test="startDate != null"> AND c.creation_date <![CDATA[>=]]> #{startDate}</if> 
+		<if test="endDate != null">  AND c.creation_date <![CDATA[<=]]> #{endDate} </if>
+		ORDER BY c.creation_date desc
+	</select>
+
+	<select id="countApplies" resultType="java.lang.Integer">
+		SELECT count(1) AS count from mgt_user_apply_records_spc c
+		WHERE 1=1
+		<if test="accountId!=null"> AND c.account_id = #{accountId}</if>  
+		<if test="startDate != null"> AND c.creation_date <![CDATA[>=]]> #{startDate}</if> 
+		<if test="endDate != null">  AND c.creation_date <![CDATA[<=]]> #{endDate} </if>
+		
+	</select>
+	
+</mapper> 
+

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.server.core.dao.mapper.LoanPlatformMapper">
+
+	<sql id="loanPlatformCols">
+		lp.platform_id AS platformId, lp.name AS name, lp.description AS description,
+		lp.min_amount AS minAmount,
+		lp.max_amount AS maxAmount, lp.limit_time AS limitTime, lp.loan_rate as loanRate,
+		lp.fastest_time AS fastestTime, lp.path AS path,
+		lp.priority AS priority, lp.service_telephone as serviceTelephone, lp.is_popular as popular, lp.is_latest AS latest,
+		lp.is_matched AS matched, lp.is_deleted as deleted, lp.creation_date AS creationDate
+	</sql>
+	
+	<select id="selectLoanPlatforms" resultType="com.jbb.server.core.domain.LoanPlatform"
+		fetchSize="20">
+		SELECT <include refid="loanPlatformCols" />
+			<if test="userId != null">
+			 , (CASE WHEN lr.platform_id IS NOT NULL THEN 1 ELSE 0 END) AS borrowed
+			 </if>	
+		FROM loan_platforms lp 
+		<if test="userId != null">
+		LEFT JOIN (SELECT DISTINCT platform_id, user_id from billings ) lr 
+			ON lr.platform_id = lp.platform_id AND lr.user_id = #{userId}
+		</if>	
+		WHERE is_deleted = 0 
+		<if test="loanType == 'hot'">
+			AND is_popular = 1
+		</if>
+		<if test="loanType == 'latest'">
+			AND is_latest = 1
+		</if>
+		<if test="loanType == 'matched'">
+			AND is_matched = 1
+		</if>
+		ORDER BY lp.priority ASC, lp.creation_date DESC
+	</select>
+	
+	<select id="selectAllLoanPlatforms" resultType="com.jbb.server.core.domain.LoanPlatform"
+		fetchSize="20">
+		SELECT <include refid="loanPlatformCols" />
+		FROM loan_platforms lp 
+		ORDER BY length(lp.name) ASC, lp.name ASC
+	</select>
+	
+	
+</mapper>

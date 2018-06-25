@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.AccountMapper">
+
+	<sql id="roleCols">
+        r.role_id AS "roleId", r.role_name AS "name", 
+        r.organization_id AS "organizationId", r.role_description AS "description"
+    </sql>
+    
+    <select id="selectRoleById" resultType="com.jbb.server.core.domain.Role">
+        SELECT <include refid="roleCols"/>
+        FROM roles r
+        WHERE role_id = #{roleId}
+    </select>
+
+    <select id="selectRolePermissions" resultType="java.lang.Integer">
+        SELECT permission
+        FROM role_permissions
+        WHERE role_id = #{roleId}
+    </select>
+    
+   	<resultMap id="UserMap" type="com.jbb.server.core.domain.User">
+		<id property="userId" column="userId" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="userName" column="userName" />
+		<result property="email" column="email" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="identityType" column="identityType" />
+		<result property="verified" column="verified" />
+		<result property="avatarPic" column="avatarPic" />
+		<result property="nickName" column="nickName" />
+		<result property="password" column="password" />
+		<result property="creationDate" column="creationDate" />
+		<result property="sex" column="sex" />
+		<result property="age" column="age" />
+		<result property="idcardAddress" column="idcardAddress" />
+		<result property="wechat" column="wechat" />
+		<result property="qqNumber" column="qqNumber" />
+		<result property="addressBookNumber" column="addressBookNumber" />
+		<result property="phoneAuthenticationTime" column="phoneAuthenticationTime" />
+		<result property="married" column="married" />
+		<result property="liveAddress" column="liveAddress" />
+		<result property="parentAddress" column="parentAddress" />
+		<result property="education" column="education" />
+		<result property="occupation" column="occupation" />
+		<result property="roleId" column="roleId" />
+		<result property="sourceId" column="sourceId" />
+		<result property="reason" column="reason" />
+		<result property="reasonDesc" column="reasonDesc" />
+		<result property="reasonPoint" column="reasonPoint" />
+		<collection property="properites" javaType="ArrayList"
+			ofType="com.jbb.server.core.domain.UserProperty">
+			<result property="name" column="p_name" />
+			<result property="value" column="p_value" />
+		</collection>
+		<collection property="verifyResults" javaType="ArrayList"
+			ofType="com.jbb.server.core.domain.UserVerifyResult">
+			<result property="verifyType" column="verifyType" />
+			<result property="verifyStep" column="verifyStep" />
+			<result property="verified" column="verified" />
+		</collection>
+	</resultMap>
+    
+
+	<sql id="usersCols">
+		u.user_id AS "userId",
+		u.phone_number AS "phoneNumber",
+		u.user_name AS "userName",
+		u.email AS "email",
+		u.idcard_no AS "idCardNo",
+		u.identity_type AS "identityType",
+		u.phone_service_password AS "phoneServicePassword",
+		u.bank_name AS "bankName",
+		u.bank_card_no AS "bankCardNo",
+		u.credit_number AS "creditNumber",
+		u.is_verified AS "verified",
+		u.avatar_pic AS "avatarPic",
+		u.nick_name AS "nickName",
+		u.password AS "password",
+		u.creation_date AS "creationDate",
+		u.sex AS "sex",
+		u.age AS "age",
+		u.nation AS "nation",
+		u.idcard_address AS "idcardAddress",
+		u.wechat AS "wechat",
+		u.qq_number AS "qqNumber",
+		u.address_book_number AS "addressBookNumber",
+		u.phone_authentication_time AS "phoneAuthenticationTime",
+		u.is_married AS "married",
+		u.live_address AS "liveAddress",
+		u.parent_address AS "parentAddress",
+		u.education AS "education",
+		u.occupation AS "occupation",
+		u.role_id AS "roleId",
+		u.source_id AS "sourceId",
+		u.platform
+	</sql>
+
+	<insert id="insertUserKey">
+		INSERT INTO user_keys (user_id, application_id,
+		oauth_client_id, user_key,
+		expiry, is_deleted)
+		VALUES (#{userId},
+		#{applicationId}, #{oauthClientId}, #{userKey},
+		#{expiry}, #{deleted})
+	</insert>
+
+	<insert id="insertUserBasicInfo" useGeneratedKeys="true"
+		keyProperty="userId">
+		INSERT INTO users
+		(`user_name`,phone_number,`email`,`idcard_no`,`is_credit_card`,`identity_type`,`phone_service_password`,`bank_name`,`bank_card_no`,
+		`credit_number`,`is_verified`,`avatar_pic`, `password`,
+		nick_name,creation_date,`sex`,`age`,`nation`,`idcard_address`,`wechat`,
+		`qq_number`,`address_book_number`,`phone_authentication_time`,`is_married`,`live_address`,`parent_address`,`education`,`occupation`,`role_id`, `source_id`,`platform`)
+		VALUES
+		(#{userName},#{phoneNumber},#{email},#{idCardNo},#{creditCard},#{identityType},#{phoneServicePassword},#{bankName},#{bankCardNo},
+		#{creditNumber},#{verified},#{avatarPic}, #{password},
+		#{nickName},#{creationDate},#{sex},#{age},#{nation},#{idcardAddress},#{wechat},
+		#{qqNumber},#{addressBookNumber},#{phoneAuthenticationTime},#{married},#{liveAddress},#{parentAddress},#{education},#{occupation}, #{roleId}, #{sourceId},#{platform})
+	</insert>
+
+	<insert id="insertUserProperty">
+		INSERT INTO `user_properties`
+		VALUE(#{userId},#{name},#{value})
+		ON DUPLICATE KEY UPDATE name = #{name}, value = #{value}
+	</insert>
+
+	<delete id="deleteUserKey" parameterType="java.lang.String">
+		UPDATE user_keys SET
+		is_deleted = 1 WHERE user_key=#{userKey}
+	</delete>
+
+	<delete id="deleteAllUserKeys">
+		UPDATE user_keys SET is_deleted = 1
+		WHERE user_id =
+		#{userId}
+	</delete>
+
+	<delete id="deleteUserPropertyByUserIdAndName">
+		DELETE FROM `user_properties` WHERE `name` = #{name}
+		AND `user_id` = #{userId}
+	</delete>
+
+	<update id="updateUser" parameterType="com.jbb.server.core.domain.User">
+		UPDATE users
+		SET user_name = #{userName},
+		email = #{email},
+		idcard_no = #{idCardNo},
+		identity_type = #{identityType},
+		phone_service_password = #{phoneServicePassword},
+		bank_name = #{bankName},
+		bank_card_no = #{bankCardNo},
+		credit_number = #{creditNumber},
+		avatar_pic = #{avatarPic},
+		nick_name = #{nickName},
+		sex = #{sex},
+		age = #{age},
+		nation = #{nation},
+		idcard_address = #{idcardAddress},
+		wechat = #{wechat},
+		qq_number = #{qqNumber},
+		address_book_number = #{addressBookNumber},
+		phone_authentication_time = #{phoneAuthenticationTime},
+		is_married = #{married},
+		live_address = #{liveAddress},
+		parent_address = #{parentAddress},
+		education = #{education},
+		occupation = #{occupation},
+		password = #{password}
+		WHERE user_id = #{userId}
+	</update>
+
+	<update id="updateUserVerified">
+		UPDATE users SET is_verified = 1
+		WHERE user_id =
+		#{userId}
+	</update>
+
+	<update id="updateUserAvatar">
+		UPDATE users SET avatar_pic = #{imgName}
+		WHERE user_id
+		= #{userId}
+	</update>
+
+	<update id="updateUserKey">
+		UPDATE user_keys SET user_key = #{userKey}, expiry =
+		#{expiry}, is_deleted =
+		#{deleted}
+		WHERE user_id = #{userId} AND
+		application_id = #{applicationId} AND
+		oauth_client_id =
+		#{oauthClientId}
+	</update>
+
+	<update id="updateUserPassword">
+		UPDATE users SET password = #{password}
+		WHERE user_id
+		= #{userId}
+	</update>
+	
+	<update id="updateTargetUserReason">
+		UPDATE user_apply_records SET reason = #{reason}, reason_desc = #{reasonDesc},  point = #{point}
+		WHERE user_id = #{userId} AND target_user_id = #{targetUserId}
+	</update>
+
+	<update id="updateUserPropertyByUserIdAndName">
+		UPDATE `user_properties` SET `value` = #{value}
+		WHERE
+		`user_id`=#{userId} AND `name`=#{name}
+	</update>
+
+	<select id="selectUserByKey" resultType="com.jbb.server.core.domain.User">
+		SELECT
+		<include refid="usersCols" />,
+		k.application_id AS "userKey.applicationId", k.expiry AS "userKey.expiry",
+		k.user_key AS "userKey.userKey", k.is_deleted AS "userKey.deleted",
+		k.oauth_client_id AS "userKey.oauthClientId"
+		FROM user_keys k, users u
+		WHERE u.user_id = k.user_id AND k.user_key = #{userKey}
+		AND k.expiry &gt;= #{expiry} AND k.is_deleted = 0
+	</select>
+
+	<select id="selectUserKey" resultType="com.jbb.server.core.domain.UserKey">
+		SELECT user_id AS
+		"userId", user_key AS "userKey", expiry, is_deleted AS
+		"deleted",
+		application_id AS "applicationId", oauth_client_id AS "oauthClientId"
+		FROM user_keys
+		WHERE user_id = #{userId} AND application_id =
+		#{applicationId} AND
+		oauth_client_id = #{oauthClientId}
+	</select>
+
+	<select id="selectUserByUserId" parameterType="int"
+		resultType="com.jbb.server.core.domain.User">
+		SELECT
+		<include refid="usersCols" />
+		FROM users u
+		WHERE u.user_id = #{userId}
+		LIMIT 1
+	</select>
+
+	<select id="selectUserByPhoneNumber" parameterType="java.lang.String"
+		resultType="com.jbb.server.core.domain.User">
+		SELECT
+		<include refid="usersCols" />
+		FROM users u
+		WHERE u.phone_number = #{phoneNumber}
+		LIMIT 1
+	</select>
+
+	<select id="checkUserIdExist" parameterType="java.lang.Integer"
+		resultType="java.lang.Integer">
+		SELECT EXISTS (SELECT 1 FROM users
+		WHERE user_id =
+		#{userId})
+	</select>
+	
+	<select id="checkUserSamePhoneNumber" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT EXISTS (SELECT 1 FROM users
+		WHERE phone_number =
+		#{phoneNumber})
+	</select>
+
+	<select id="checkUserSameNickname" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT EXISTS (SELECT 1 FROM users
+		WHERE nick_name =
+		#{nickname})
+	</select>
+
+	<select id="selectUserPropertyByUserIdAndName" resultType="com.jbb.server.core.domain.UserProperty">
+		select up.user_id AS userId,up.name AS name,up.value AS `value`
+		from user_properties up
+		where up.user_id=#{userId} AND up.name = #{name}
+	</select>
+	
+	<select id="selectUserProperties" resultType="com.jbb.server.core.domain.UserProperty" fetchSize="10">
+        SELECT name, value
+        FROM user_properties
+        WHERE user_id = #{userId} <if test="name != null">AND name LIKE #{name}</if>
+    </select>
+	
+	<insert id="insertUserApplyRecord">
+		INSERT IGNORE INTO `user_apply_records` (user_id, target_user_id, creation_date)
+		VALUE(#{userId},#{targetUserId},#{creationDate})
+	</insert>
+	
+	<select id="selectUsers" resultMap="UserMap">
+		SELECT <include refid="usersCols" />
+		<if test="detail"> 
+				, up.name as p_name, up.value as p_value
+				, uvr.verify_type as verifyType, uvr.verify_step as verifyStep, uvr.verified
+		</if>
+		FROM `users` u 
+		<if test="detail">
+		LEFT JOIN user_properties up on up.user_id = u.user_id
+		LEFT JOIN user_verify_result uvr on u.user_id = uvr.user_id
+		</if>
+		WHERE 1=1 
+		<if test="roleId"> 
+			AND u.role_id = #{roleId} 
+		</if>
+		<if test="userIds"> 
+			AND u.user_id IN
+			<foreach item="userId" index="index" collection="userIds" open="(" separator="," close=")">
+				#{userId}
+			</foreach>
+		</if>
+	</select>
+	
+	
+	<select id="checkUserApplied" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM user_apply_records ua
+			WHERE ua.user_id = #{userId} 
+			<if test="start !=null "> 
+			AND ua.creation_date &gt;= #{start} 
+			</if>
+		)
+	</select>
+	
+        
+	<select id="selectApplyUsers"  resultMap="UserMap">
+		SELECT u.user_id as userId, u.phone_number as phoneNumber, u.user_name as userName, u.wechat
+			, u.sex, u.age, u.idcard_no as idCardNo, u.source_id as sourceId, u.qq_number as qqNumber
+			, uar.creation_date as creationDate, uar.reason as reason, uar.reason_desc as reasonDesc, uar.point as reasonPoint
+		<if test="detail"> 
+				, up.name as p_name, up.value as p_value
+		</if>
+		FROM user_apply_records uar
+		LEFT JOIN users u on u.user_id = uar.user_id
+		<if test="detail">
+		LEFT JOIN user_properties up on up.user_id = u.user_id
+		</if>
+		WHERE 1=1 
+		<if test="start !=null "> 
+			AND uar.creation_date &gt;= #{start} 
+		</if>
+		<if test="end != null"> 
+			AND uar.creation_date &lt;= #{end} 
+		</if>
+		<if test="targetUserId !=null "> 
+			AND uar.target_user_id = #{targetUserId} 
+		</if>
+		<if test="userId !=null "> 
+			AND uar.user_id = #{userId} 
+		</if>
+		ORDER BY uar.creation_date DESC
+	</select>
+	
+	
+</mapper>

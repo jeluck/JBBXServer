@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.server.core.dao.mapper.AdvertisingMapper" >
+  <sql id="AdvertisingList" >
+    ad.ad_id as adId, ad.device_platform as devicePlatform, ad.advertising_name as advertisingName,
+    ad.pic_path as picPath, ad.content as content, 
+    ad.priority as priority, ad.click_path as clickPath, 
+    ad.creation_date as creationDate
+  </sql>
+  
+  <select id="selectAdById" resultType="com.jbb.server.core.domain.Advertising" 
+  	parameterType="java.lang.Integer" >
+    select <include refid="AdvertisingList" />
+    from advertising ad
+    where ad_id = #{adId,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectAdvertising" resultType="com.jbb.server.core.domain.Advertising">
+ 	select <include refid="AdvertisingList" /> from advertising ad 
+ 	where 1 = 1
+  		<if test="platform != null">
+		and device_platform =  #{platform}
+ 		</if>
+  	order by priority asc
+  </select>
+</mapper> 

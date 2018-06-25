@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.SystemMapper">
+
+	<resultMap id="systemProperties" type="com.jbb.server.core.domain.Property">
+		<id column="name" property="key" javaType="String" />
+		<result column="value" property="value" javaType="String" />
+	</resultMap>
+
+	<insert id="saveSystemProperty">
+		INSERT INTO system_properties(name, value)
+		VALUES(#{name}, #{value})
+		ON DUPLICATE KEY UPDATE value = #{value}
+	</insert>
+	
+	<update id="increasePropsVersion">
+		UPDATE info SET props_version = props_version + 1;
+	</update>
+
+	<select id="selectSystemProperties" resultType="com.jbb.server.core.domain.Property" fetchSize="50">
+		SELECT name, value FROM system_properties
+	</select>
+	
+	<select id="selectSystemProperty" resultType="com.jbb.server.core.domain.Property">
+		SELECT name, value FROM system_properties 
+		WHERE name = #{name}
+	</select>
+
+	<select id="selectPropsVersion" resultType="Integer" fetchSize="1">
+		SELECT props_version FROM info LIMIT 1
+	</select>
+
+</mapper>

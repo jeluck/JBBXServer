@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.UserLoanRecordDetailMapper">
+
+    <resultMap id="UserLoanRecordDetailsMap" type="com.jbb.mgt.core.domain.UserLoanRecordDetail">
+        <id property="loanId" column="loan_id"/>
+        <result property="opType" column="op_type"/>
+        <result property="amountType" column="amount_type"/>
+        <result property="amount" column="amount"/>
+        <result property="accountId" column="account_id"/>
+        <result property="opDate" column="op_date"/>
+    </resultMap>
+
+    <insert id="insertUserLoanRecordDetail">
+		INSERT INTO mgt_user_loan_record_details (loan_id, op_type, amount_type, amount, account_id, op_date)
+		VALUES (#{loanId}, #{opType}, #{amountType}, #{amount}, #{accountId}, #{opDate})
+	</insert>
+
+    <select id="selectUserLoanRecordDetails" resultMap="UserLoanRecordDetailsMap">
+		SELECT
+			ld.loan_id, ld.op_type, ld.amount_type, ld.amount, ld.account_id, ld.op_date
+		FROM mgt_user_loan_record_details ld
+		WHERE ld.loan_id = #{loanId}
+	</select>
+
+    <select id="selectCountMoneyByOrgId" resultType="com.jbb.mgt.core.domain.Money">
+        SELECT
+        (SELECT
+        sum(IF(rs2.amount_type=1,rs2.amount,0))
+        FROM mgt_user_loan_record_details rs2
+        LEFT JOIN mgt_accounts a2 on rs2.account_id = a2.account_id
+        WHERE
+        a2.org_id = #{orgId} AND rs2.op_date &lt; current_timestamp()
+        ) as dueToMoney,
+        a.org_id,sum(IF(rs.amount_type=1,rs.amount,0)) as loanMoney,
+        sum(IF(rs.amount_type=2,rs.amount,0)) as returnMoney
+        FROM mgt_user_loan_record_details rs
+        LEFT JOIN mgt_accounts a on rs.account_id = a.account_id
+        WHERE
+        a.org_id = #{orgId}
+        <if test="startDate!=null">
+            AND rs.op_date <![CDATA[>=]]> #{startDate}
+        </if>
+        <if test="endDate!=null">
+            AND rs.op_date <![CDATA[<=]]> #{endDate}
+        </if>
+        GROUP BY
+        a.org_id;
+    </select>
+
+
+    <select id="selectDueMoney" resultType="Integer">
+		SELECT IFNULL((SELECT sum(r.borrowing_amount)
+				FROM mgt_user_loan_records r
+				LEFT JOIN mgt_accounts a on r.account_id = a.account_id
+				WHERE a.org_id = 3) - sum(IF(rs2.amount_type=2,rs2.amount,0)),0)as dueMoney
+        FROM mgt_user_loan_record_details rs2
+        LEFT JOIN mgt_accounts a2 on rs2.account_id = a2.account_id
+        WHERE
+            a2.org_id = #{orgId};
+	</select>
+
+    <select id="selectBorrowingMoney" resultType="Integer">
+        SELECT IFNULL(sum(r2.borrowing_amount),0)
+        FROM mgt_user_loan_records r2
+        LEFT JOIN mgt_accounts a2 on r2.account_id = a2.account_id
+        WHERE
+        a2.org_id = #{orgId}
+        <if test="startDate!=null">
+            AND r2.creation_date <![CDATA[>=]]> #{startDate}
+        </if>
+        <if test="endDate!=null">
+            AND r2.creation_date <![CDATA[<=]]> #{endDate}
+        </if>
+    </select>
+
+</mapper> 
+

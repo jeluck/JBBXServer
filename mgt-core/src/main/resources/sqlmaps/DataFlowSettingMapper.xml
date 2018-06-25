@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.jbb.mgt.core.dao.mapper.DataFlowSettingMapper">
+
+	<insert id="insertDataFlowSetting">
+		INSERT INTO mgt_account_dflow_settings
+			(org_id, is_closed, dflow_id,min_value,max_value)
+		VALUES
+			(#{orgId}, #{closed}, #{dataFlowId},#{minValue},#{maxAvlue})
+	</insert>
+
+	<update id="updateDataFlowSetting">
+		UPDATE mgt_account_dflow_settings
+		SET dflow_id=#{dataFlowId},min_value=#{minValue}, max_value=#{maxAvlue}, is_closed = #{closed}
+		WHERE org_id = #{orgId}
+	</update>
+
+	<select id="selectDataFlowSettingByOrgId" resultType="com.jbb.mgt.core.domain.DataFlowSetting">
+		SELECT f.org_id as orgId ,f.dflow_id as dataFlowId,
+			f.min_value as minValue, f.max_value as maxAvlue, f.is_closed as closed
+		FROM mgt_account_dflow_settings f
+		WHERE f.org_id = #{orgId}
+	</select>
+	
+	<select id="selectDataFlowSettings" resultType="com.jbb.mgt.core.domain.DataFlowSetting">
+		SELECT f.org_id as orgId ,f.dflow_id as dataFlowId,
+			f.min_value as minValue, f.max_value as maxAvlue, f.is_closed as closed
+		FROM mgt_account_dflow_settings f
+	</select>
+
+</mapper> 

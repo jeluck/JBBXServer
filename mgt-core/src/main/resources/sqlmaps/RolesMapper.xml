@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.RolesMapper">
+
+
+	<select id="selectRolesByRoleId" resultType="com.jbb.mgt.core.domain.Roles">
+		SELECT role_id as roleId,description as description
+		FROM mgt_roles
+		WHERE role_id = #{roleId}
+	</select>
+
+
+	<select id="selectRoles" resultType="com.jbb.mgt.core.domain.Roles">
+		SELECT role_id as roleId,description as description
+		FROM mgt_roles
+	</select>
+
+
+	<select id="selectRolesAndPermissionsByRoleId" resultType="java.lang.Integer">
+		select IFNULL(p.permission_id ,0) AS permission  from mgt_roles r LEFT JOIN 
+		mgt_role_permissions p ON r.role_id=p.role_id  WHERE r.role_id=#{roleId}
+	</select>
+	
+</mapper> 

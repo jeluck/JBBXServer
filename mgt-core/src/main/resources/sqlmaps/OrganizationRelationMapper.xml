@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbb.mgt.core.dao.mapper.OrganizationRelationMapper">
+    <resultMap id="BaseResultMap" type="com.jbb.mgt.core.domain.OrganizationRelation">
+        <result column="org_id" property="orgId" jdbcType="INTEGER"/>
+        <result column="sub_org_id" property="subOrgId" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+      org_id, sub_org_id
+    </sql>
+    <select id="selectOrgRelationByOrgId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mgt_organization_relations
+        where org_id = #{orgId,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="com.jbb.mgt.core.domain.OrganizationRelation">
+    delete from mgt_organization_relations
+    where
+        org_id = #{orgId}
+        <if test="subOrgId != null and subOrgId != 0">
+            AND sub_org_id = #{subOrgId}
+        </if>
+  </delete>
+    <insert id="insert" parameterType="com.jbb.mgt.core.domain.OrganizationRelation">
+    insert into mgt_organization_relations (org_id, sub_org_id)
+    values (#{orgId,jdbcType=INTEGER}, #{subOrgId,jdbcType=INTEGER})
+  </insert>
+    <insert id="insertSelective" parameterType="com.jbb.mgt.core.domain.OrganizationRelation">
+        insert into mgt_organization_relations
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orgId != null">
+                org_id,
+            </if>
+            <if test="subOrgId != null">
+                sub_org_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orgId != null">
+                #{orgId,jdbcType=INTEGER},
+            </if>
+            <if test="subOrgId != null">
+                #{subOrgId,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+</mapper>

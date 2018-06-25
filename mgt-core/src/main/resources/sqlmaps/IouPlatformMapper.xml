@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.IouPlatformMapper">
+
+	<select id="selectPlatforms" resultType="com.jbb.mgt.core.domain.IouPlatform">
+		SELECT iou_platform_id AS iouPlatformId,platform_name AS platformName,description AS description
+		FROM mgt_iou_platforms
+	</select>
+
+</mapper> 

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.BillingMapper">
+    
+    <sql id="billingCols">
+    	ub.billing_id, ub.user_id , ub.platform_id , ub.order_id,ub.name, ub.b_amount, ub.b_date, ub.loan_type_id, ub.repeats, 
+    	ub.start_no , ub.p_amount , ub.p_date , ub.rate , ub.description, ub.is_deleted
+    </sql>
+
+	<sql id="billingDetailCols">
+		 bd.billing_detail_id, bd.billing_id, bd.current_no, bd.balance, bd.return_date,
+		 bd.payment_sum, bd.last_payment_date, bd.status
+	</sql>
+
+	<sql id="repaymentCols">
+		rd.repayment_id, rd.billing_detail_id, rd.amount , rd.repay_date
+	</sql>
+	
+	<resultMap id="BillingMap" type="com.jbb.server.core.domain.Billing">
+		<id property="billingId" column="billing_id" />
+		<result property="userId" column="user_id" />
+		<result property="platformId" column="platform_id" />
+		<result property="platformName" column="platform_name" />
+		<result property="orderId" column="order_id" />
+		<result property="name" column="name" />
+		<result property="bAmount" column="b_amount" />
+		<result property="bDate" column="b_date" />
+		<result property="loanTypeId" column="loan_type_id" />
+		<result property="repeats" column="repeats" />
+		<result property="startNo" column="start_no" />
+		<result property="pAmount" column="p_amount" />
+		<result property="pDate" column="p_date" />
+		<result property="rate" column="rate" />
+		<result property="description" column="description" />
+		<result property="deleted" column="is_deleted" />
+		<collection property="details" javaType="ArrayList"
+			ofType="com.jbb.server.core.domain.BillingDetail">
+			<result property="billingDetailId" column="billing_detail_id" />
+			<result property="billingId" column="billing_id" />
+			<result property="currentNo" column="current_no" />
+			<result property="balance" column="balance" />
+			<result property="interest" column="interest" />
+			<result property="returnDate" column="return_date" />
+			<result property="paymentSum" column="payment_sum" />
+			<result property="lastPaymentDate" column="last_payment_date" />
+			<result property="status" column="status" />
+		</collection>
+	</resultMap>
+
+	<resultMap id="BillingDetailMap" type="com.jbb.server.core.domain.BillingDetail">
+		<id property="billingDetailId" column="billing_detail_id" />
+		<result property="billingId" column="billing_id" />
+		<result property="currentNo" column="current_no" />
+		<result property="balance" column="balance" />
+		<result property="interest" column="interest" />
+		<result property="returnDate" column="return_date" />
+		<result property="paymentSum" column="payment_sum" />
+		<result property="lastPaymentDate" column="last_payment_date" />
+		<result property="status" column="status" />
+	</resultMap>
+	
+	<resultMap id="RepaymentMap" type="com.jbb.server.core.domain.Repayment">
+		<id property="repaymentId" column="repayment_id" />
+		<result property="billingDetailId" column="billing_detail_id" />
+		<result property="amount" column="amount" />
+		<result property="repayDate" column="repay_date" />
+	</resultMap>
+	
+	<!-- START 以下为账单表操作 -->
+	<insert id="insertBilling" useGeneratedKeys="true" keyProperty="billingId" parameterType="com.jbb.server.core.domain.Billing">
+		INSERT INTO billings (billing_id, user_id, platform_id, order_id, name, b_amount, b_date, loan_type_id, repeats, start_no,  p_amount, p_date, rate, description )
+		VALUES (#{billingId}, #{userId}, #{platformId}, #{orderId}, #{name},
+			#{bAmount}, #{bDate}, #{loanTypeId}, #{repeats}, #{startNo},
+			#{pAmount}, #{pDate}, #{rate}, #{description})
+	</insert>
+
+	<update id="deleteBilling">
+		UPDATE billings
+		SET is_deleted = 1
+		WHERE billing_id = #{billingId}
+	</update>
+
+	<update id="updateBilling" parameterType="com.jbb.server.core.domain.Billing">
+		UPDATE billings
+		<set>
+			<if test="name!=null">
+				name = #{name} ,
+			</if>
+			<if test="bAmount!=null">
+				b_amount = #{bAmount} ,
+			</if>
+			<if test="bDate!=null">
+				b_date = #{bDate} ,
+			</if>
+			<if test="startNo!=null">
+				start_no = #{startNo} ,
+			</if>
+			<if test="pAmount!=null">
+				p_amount = #{pAmount} ,
+			</if>
+			<if test="pDate!=null">
+				p_date = #{pDate} ,
+			</if>
+			<if test="rate!=null">
+				rate = #{rate} ,
+			</if>
+			<if test="description!=null">
+				description = #{description} 
+			</if>
+		</set>
+		WHERE billing_id = #{billingId}
+	</update>
+
+	<select id="selectBilling" resultMap="BillingMap">
+		SELECT
+			<include refid="billingCols" />
+			,  lp.name as platform_name
+			<if test="detail"> 
+				, <include refid="billingDetailCols" />
+			</if>
+		FROM billings ub
+		LEFT JOIN loan_platforms lp on ub.platform_id = lp.platform_id
+		<if test="detail">
+		LEFT JOIN billing_details bd on ub.billing_id = bd.billing_id
+		</if>
+		WHERE ub.billing_id = #{billingId} AND user_id = #{userId}	
+	</select>
+
+	<select id="selectBillings" resultMap="BillingMap" fetchSize="20">
+		SELECT 
+			<include refid="billingCols" />, lp.name as platform_name
+			<if test="detail"> 
+				, <include refid="billingDetailCols" />
+			</if>
+		FROM billings ub
+		LEFT JOIN loan_platforms lp on ub.platform_id = lp.platform_id
+		<if test="detail">
+		LEFT JOIN billing_details bd on ub.billing_id = bd.billing_id
+		</if>
+		WHERE ub.is_deleted = 0 AND ub.user_id = #{userId}
+	</select>
+	
+	<select id="selectBillingsByDate" resultMap="BillingMap" fetchSize="20">
+		SELECT 
+			<include refid="billingCols" />, lp.name as platform_name ,
+			<include refid="billingDetailCols" />
+		FROM billing_details  bd
+		LEFT JOIN billings ub on ub.billing_id = bd.billing_id 
+		LEFT JOIN loan_platforms lp on ub.platform_id = lp.platform_id
+		WHERE ub.is_deleted = 0 AND ub.user_id = #{userId}
+			AND bd.return_date &gt;= #{startDate} 
+			AND bd.return_date &lt; #{endDate}
+	</select>
+	
+	<!-- END 账单表操作 -->
+
+	<!-- START 以下为账单偿还明细表操作 -->
+
+	<insert id="insertBillingDetail">
+		INSERT INTO billing_details (billing_id, current_no, balance, interest, return_date)
+		VALUES (#{billingId}, #{currentNo}, #{balance}, #{interest}, #{returnDate})
+	</insert>
+
+	<delete id="deleteBillingDetail">
+		DEETE FROM billing_details
+		WHERE repayment_id = #{repaymentId}
+	</delete>
+
+	<update id="updateBillingDetail" parameterType="com.jbb.server.core.domain.BillingDetail">
+		UPDATE billing_details
+		<set>
+			<if test="balance!=null">
+				balance = #{balance} ,
+			</if>
+			<if test="interest!=null">
+				interest = #{interest} ,
+			</if>
+			<if test="returnDate!=null">
+				return_date = #{returnDate} ,
+			</if>
+			<if test="paymentSum!=null">
+				payment_sum = #{paymentSum} ,
+			</if>
+			<if test="lastPaymentDate">
+				last_payment_date = #{lastPaymentDate} ,
+			</if>
+			<if test="status!=null">
+				status = #{status} 
+			</if>
+		</set>
+		WHERE billing_detail_id = #{billingDetailId}
+	</update>
+
+	<select id="selectBillingDetail" resultMap="BillingDetailMap">
+		SELECT
+		<include refid="billingDetailCols" />
+		FROM billing_details bd
+		WHERE bd.billing_detail_id = #{billingDetailId}
+	</select>
+
+	<select id="selectBillingDetails" resultMap="BillingDetailMap" fetchSize="20">
+		SELECT <include refid="billingDetailCols" />
+		FROM billing_details bd
+		WHERE bd.billing_id = #{billingId}
+	</select>
+
+	<!-- END 账单偿还明细表操作 -->
+
+	<!-- START 以下为账单偿还明细表操作 -->
+	<insert id="insertRepayment" useGeneratedKeys="true" keyProperty="repaymentId">
+		INSERT INTO repayment_details (repayment_id, billing_detail_id, amount, repay_date)
+		VALUES (#{repaymentId}, #{billingDetailId}, #{amount}, #{repayDate})
+	</insert>
+
+	<delete id="deleteRepayment">
+		DEETE FROM repayment_details
+		WHERE repayment_id = #{repaymentId}
+	</delete>
+
+	<select id="selectRepayment" resultMap="RepaymentMap">
+		SELECT <include refid="repaymentCols" />
+		FROM repayment_details
+		WHERE repayment_id = #{repaymentId}
+	</select>
+
+	<select id="selectRepayments" resultMap="RepaymentMap"
+		fetchSize="20">
+		SELECT <include refid="repaymentCols" />
+		FROM repayment_details rd
+		WHERE rd.billing_detail_id = #{billingDetailId}
+	</select>
+	<!-- END -->
+
+</mapper>

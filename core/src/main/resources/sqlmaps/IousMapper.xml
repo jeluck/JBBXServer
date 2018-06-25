@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jbb.server.core.dao.mapper.IousMapper">
+	<sql id="iouCols">
+		iou.iou_code AS "iouCode",
+		iou.borrower_id AS "borrowerId",
+		iou.lender_id AS "lenderId",
+		iou.borrowing_amount AS "borrowingAmount",
+		iou.borrowing_date AS "borrowingDate",
+		iou.repayment_date AS "repaymentDate",
+		iou.extension_date AS "extensionDate",
+		iou.annual_rate AS "annualRate",
+		iou.purpose AS "purpose",
+		iou.creation_date AS "creationDate",
+		iou.effective_date AS "effectiveDate",
+		iou.status AS "status",
+		iou.last_update_status_date AS "lastUpdateStatusDate",
+		iou.is_lender_deleted AS "lenderDeleted",
+		iou.device AS "device",
+		iou.is_deleted AS "deleted"
+	</sql>
+	
+
+	<sql id="userBasicCols">
+		u.user_id AS "borrower.userId"
+			, u.user_name AS "borrower.username", u.nick_name AS "borrower.nickName"
+			, u.is_verified AS "borrower.verified", u.avatar_pic AS "borrower.avatarPic"
+	</sql>
+	
+	<sql id="lenderBasicCols">
+		ul.user_id AS "lender.userId"
+			, ul.user_name AS "lender.username", ul.nick_name AS "lender.nickName"
+			, ul.is_verified AS "lender.verified", ul.avatar_pic AS "lender.avatarPic"
+	</sql>
+
+	<insert id="insertIou">
+		INSERT INTO
+		`ious`(`iou_code`,`borrower_id`,`lender_id`,`status`,`borrowing_amount`,`borrowing_date`,`repayment_date`,`annual_rate`,`purpose`,`device`)
+		VALUE(#{iouCode},#{borrowerId},#{lenderId},#{status},#{borrowingAmount}, #{borrowingDate},#{repaymentDate},#{annualRate},#{purpose},#{device})
+	</insert>
+
+	<update id="updateIou">
+		UPDATE `ious` SET
+		`lender_id`=#{lenderId},`borrowing_amount`=#{borrowingAmount},
+		`borrowing_date`=#{borrowingDate},`repayment_date`=#{repaymentDate},`status`=#{status},
+		`extension_date`=#{extensionDate},`annual_rate`=#{annualRate},`purpose`=#{purpose},
+		`effective_date`=#{effectiveDate},`last_update_status_date`=CURRENT_TIMESTAMP,`device`=#{device}
+		where `iou_code`=#{iouCode}
+	</update>
+
+	<update id="updateIouStatus">
+		UPDATE ious SET last_update_status_date=CURRENT_TIMESTAMP,status = #{status}
+		where iou_code=#{iouCode}
+	</update>
+
+	<update id="deleteIouForLender">
+		UPDATE ious SET is_lender_deleted= 1 where iou_code=#{iouCode}
+	</update>
+	
+	
+	<update id="deleteIouForBorrower">
+		UPDATE ious SET is_deleted= 1 where iou_code=#{iouCode}
+	</update>
+	
+	<select id="selectIouByCode" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />
+		FROM ious iou
+		WHERE iou.iou_code = #{iouCode}
+	</select>
+	
+	<!-- 补借条：待生效列表，包括出借待生效、借入待生效 -->
+	<select id="selectIous" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />, <include refid="userBasicCols" />,<include refid="lenderBasicCols" />
+		FROM ious iou
+		LEFT JOIN users u on u.user_id = iou.borrower_id
+		LEFT JOIN users ul on ul.user_id = iou.lender_id
+		WHERE 1=1
+		<if test="phoneNumber != null">
+			AND u.phone_number = #{phoneNumber}
+		</if>
+		<if test="userName != null">
+			AND u.userName = #{userName}
+		</if>
+		<if test="iouCode != null">
+			AND iou.iou_code = #{iouCode}
+		</if>	
+
+		<if test="lenderId != null">
+			AND iou.lender_id = #{lenderId}
+			AND iou.is_lender_deleted = 0
+			<if test="searchText != null">
+				AND (
+					u.phone_number = #{searchText} 
+					OR iou.borrower_id = #{searchText} 
+					OR u.user_name = #{searchText} 
+				) 
+			</if>
+		</if>
+		<if test="borrowerId != null">
+			AND iou.borrower_id = #{borrowerId}
+			AND iou.is_deleted = 0
+			<if test="searchText != null">
+				AND (
+					ul.phone_number = #{searchText} 
+					OR iou.lender_id = #{searchText} 
+					OR ul.user_name = #{searchText} 
+				) 
+			</if>
+		</if>
+		
+		<if test="borrowingStart != null">
+			AND iou.borrowing_date &gt;= #{borrowingStart}
+		</if>
+		<if test="borrowingEnd != null">
+			AND iou.borrowing_date &lt;= #{borrowingEnd}
+		</if>
+		<if test="repaymentStart != null">
+			AND iou.repayment_date &gt;= #{repaymentStart}
+		</if>
+		<if test="repaymentEnd != null">
+			AND iou.repayment_date &lt;= #{repaymentEnd}
+		</if>
+		<if test="amountMin != null">
+			AND iou.borrowing_amount &gt;= #{amountMin}
+		</if>
+		<if test="amountMax != null">
+			AND iou.borrowing_amount &lt;= #{amountMax}
+		</if>
+		<if test="filterStatuses!=null and filterStatuses.length>0">
+			AND 
+			<foreach item="fStatus" index="index" collection="filterStatuses" open="(" separator="OR" close=")">
+				<if test="fStatus == 1">
+					(iou.repayment_date &gt;= date(now()) AND iou.status in (1,5,6,7,8,10,11,12,13))
+				</if>
+				<if test="fStatus == 2">
+					iou.status in (9,14)
+				</if>
+				<if test="fStatus == 3">
+					(iou.repayment_date &lt; date(now()) AND iou.status in (1,5,6,7,8,10,11,12,13))
+				</if>
+			</foreach>
+		</if>
+		<if test="statuses!=null">
+				AND iou.status IN 
+				<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+					#{status}
+				</foreach>
+		</if>
+		<if test="lastIouCode!=null">
+				<if test="forward == 0">
+					AND iou.iou_code &lt; #{lastIouCode}
+				</if>
+				<if test="forward == 1">
+					AND iou.iou_code &gt; #{lastIouCode}
+				</if>
+		</if>
+		<choose>
+			<when test="forward == 0">
+				ORDER BY iou.iou_code DESC
+			</when>
+			<when test="forward == 1">
+				ORDER BY iou.iou_code ASC
+			</when>
+			<otherwise>
+				ORDER BY iou.iou_code DESC
+			</otherwise>
+		</choose>
+		LIMIT #{pageSize}
+	</select>
+	
+	<!-- 根据消息类型获取要发送消息的借条实体 -->
+	<select id="selectIousForMessage" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />
+		FROM ious iou
+		LEFT JOIN (
+			SELECT DISTINCT r.iou_code FROM iou_alert_records r 
+			WHERE r.message_type = #{messageType} AND DATE(r.creation_date) = DATE(#{sendDate})
+		)  t ON iou.iou_code = t.iou_code
+		WHERE t.iou_code IS NULL
+		 	<if test="startDate != null">
+		 		AND iou.repayment_date  &gt;= #{startDate}
+		 	</if>
+		 	<if test="endDate != null">
+		 		AND iou.repayment_date  &lt;  #{endDate}
+		 	</if>
+		 	<if test="statuses!=null">
+				AND iou.status IN 
+				<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+					#{status}
+				</foreach>
+			</if>
+		LIMIT #{pageSize}	
+	</select>
+	
+	<select id="searchIousForHall" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />, <include refid="userBasicCols" />
+		FROM ious iou
+		LEFT JOIN users u on u.user_id = iou.borrower_id
+		WHERE iou.is_deleted= 0 
+			AND iou.is_lender_deleted= 0 
+			AND iou.status = 0
+			<if test="lastIouCode!=null">
+				<if test="forward == 0">
+					AND iou.iou_code &lt; #{lastIouCode}
+				</if>
+				<if test="forward == 1">
+					AND iou.iou_code &gt; #{lastIouCode}
+				</if>
+			</if>
+		<choose>
+			<when test="forward == 0">
+				ORDER BY iou.iou_code DESC
+			</when>
+			<when test="forward == 1">
+				ORDER BY iou.iou_code ASC
+			</when>
+			<otherwise>
+				ORDER BY iou.iou_code DESC
+			</otherwise>
+		</choose>
+		LIMIT #{pageSize}
+	</select>
+
+	<select id="searchIous" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />, <include refid="userBasicCols" />
+		FROM ious iou
+		LEFT JOIN users u on u.user_id = iou.borrower_id
+		where 1=1
+		<if test="borrowerId == null and lenderId == null">
+			AND iou.is_deleted= 0 AND iou.is_lender_deleted= 0 AND iou.status = 0
+		</if>
+		<if test="borrowerId!=null">
+			AND iou.borrower_id = #{borrowerId} AND iou.is_deleted= 0
+		</if>
+		<if test="lenderId!=null">
+			AND iou.lender_id = #{lenderId} AND iou.is_lender_deleted= 0
+		</if>
+		<if test="status!=null">
+			AND iou.status = #{status}
+		</if>
+		ORDER BY iou.last_update_status_date DESC
+	</select>
+	
+	<select id="searchIntendIous" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />, <include refid="userBasicCols" />, iiu.status AS intendStatus
+		FROM iou_intentional_users iiu
+		INNER JOIN ious iou ON iou.iou_code = iiu.iou_code
+		LEFT JOIN users u ON u.user_id = iou.borrower_id
+		WHERE iiu.user_id = #{lenderId} 
+		<if test="statuses!=null">
+				AND iiu.status IN 
+				<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+					#{status}
+				</foreach>
+		</if>
+		ORDER BY iou.last_update_status_date DESC
+	</select>
+	
+	<select id="selectFollowedIous" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />, <include refid="userBasicCols" />
+		FROM iou_followers iouf
+		LEFT JOIN ious iou ON iouf.iou_code = iou.iou_code
+		LEFT JOIN users u ON u.user_id = iou.borrower_id
+		WHERE iouf.user_id =  #{userId} AND iouf.status = 1
+		ORDER BY iou.last_update_status_date DESC
+	</select>
+	
+	<select id="countHallNewIous" resultType="java.lang.Integer">
+		SELECT count(1)
+		FROM ious iou
+		WHERE iou.is_deleted= 0 
+			AND iou.is_lender_deleted= 0 
+			AND iou.status = 0
+			<if test="start!=null">
+			AND iou.creation_date &gt; #{start}
+			</if>
+	</select>
+	
+	<select id="countBorrowOrLendUpdatedIous" resultType="java.lang.Integer">
+		SELECT count(1)
+		FROM ious iou
+		WHERE 1=1
+			<if test="borrowerId!=null">
+				AND iou.borrower_id = #{borrowerId} AND iou.is_deleted= 0
+			</if>
+			<if test="lenderId!=null">
+				AND iou.lender_id = #{lenderId} AND iou.is_lender_deleted= 0
+			</if>
+			<if test="start!=null">
+				AND iou.last_update_status_date &gt; #{start}
+			</if>
+	</select>
+
+	<select id="countFollowUpdatedIous" resultType="java.lang.Integer">
+		SELECT count(1)
+		FROM iou_followers iouf
+		LEFT JOIN ious iou ON iouf.iou_code = iou.iou_code
+		WHERE iouf.user_id =  #{userId} AND iouf.status = 1
+		<if test="start!=null">
+			AND iou.last_update_status_date &gt; #{start}
+		</if>
+	</select>
+	
+	<select id="countIousByStatus" resultType="java.lang.Integer">
+		SELECT count(1)
+		FROM ious iou
+		WHERE iou.borrower_id =  #{borrowerId} AND iou.is_deleted = 0
+		<if test="statuses!=null">
+			AND iou.status IN
+			<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+				#{status} 
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 查询当前时间最近的几条记录 -->
+	<select id="selectRecentIousByBorrowerId" resultType="com.jbb.server.core.domain.Iou">
+		SELECT <include refid="iouCols" />
+		FROM ious iou
+		WHERE 1=1 AND iou.borrower_id = #{borrowerId} AND iou.is_deleted= 0
+		<if test="statuses!=null">
+			AND iou.status IN
+			<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+				#{status}
+			</foreach>
+		</if>
+		<if test="excludStatuses!=null">
+			AND iou.status NOT IN
+			<foreach item="status" index="index" collection="excludStatuses" open="(" separator="," close=")">
+				#{status}
+			</foreach>
+		</if>
+		<choose>
+           <when test="feature">
+           		AND IFNULL(extension_date, repayment_date) &gt;= #{currentDate}
+                ORDER BY IFNULL(extension_date, repayment_date)  ASC
+           </when>
+           <otherwise>
+           		AND IFNULL(extension_date, repayment_date) &lt; #{currentDate}
+                ORDER BY IFNULL(extension_date, repayment_date)  DESC
+           </otherwise>
+        </choose>
+		Limit #{size}
+	</select>
+	
+	<!-- 统计借入、借出等数据 9为出借人确认结束，14为销账结束 -->
+	<select id="statisticIousAmountAndCnt" resultType="com.jbb.server.core.domain.IousAmountStatistic">
+		SELECT count(1) as cnt,  
+			sum(borrowing_amount * annual_rate * DATEDIFF(IF(iou.status=9 or iou.status=14, repayment_date, now()), borrowing_date)/365/100 ) as interest,
+			sum(borrowing_amount) as amount 
+		FROM ious iou
+		WHERE 1=1
+		<if test="statuses!=null">
+			AND iou.status IN
+			<foreach item="status" index="index" collection="statuses" open="(" separator="," close=")">
+				#{status}
+			</foreach>
+		</if>
+		<if test="start != null">
+			AND  iou.repayment_date &gt;= #{start}
+		</if>
+		<if test="end != null">
+			AND  iou.repayment_date &lt; #{end}
+		</if>
+		<if test="borrowerId != null">
+			AND  iou.borrower_id = #{borrowerId}
+		</if>
+		<if test="lenderId != null">
+			AND  iou.lender_id = #{lenderId}
+		</if>
+	</select>
+	
+	<!-- 用户是否可以操用当前状态的借条 -->
+	<select id="checkRightToUpdateStatus" resultType="java.lang.Integer">
+		SELECT EXISTS (
+			SELECT 1 FROM iou_status_control
+			WHERE pre_status = #{preStatus} 
+				AND new_status = #{newStatus}
+				AND borrower_ctrl = #{borrowerCtrl}
+				AND lender_ctrl = #{lenderCtrl}
+		)
+	</select>
+	
+	<insert id="insertIouAlertRecord">
+		INSERT INTO iou_alert_records (iou_code,creation_date,message_type)
+		VALUES (#{iouCode},#{creationDate},#{messageType})
+	</insert>
+	
+</mapper>

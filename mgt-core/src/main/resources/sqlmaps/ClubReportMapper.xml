@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.ClubReportMapper" >
+
+	<sql id="reportCols">
+        r.task_id as taskId, r.status as status, r.channel_type as channelType
+        , r.channel_code as channelCode, r.channel_src as channelSrc, r.channel_attr as channelAttr
+        , r.real_name as realName, r.identity_code as identityCode , r.created_time as createdTime
+        , r.user_name as username
+    </sql>
+
+
+	<insert id="insertReport">
+		INSERT INTO mgt_data_club_preloan_report 
+			(task_id, status, channel_type, channel_code, channel_src, channel_attr, real_name, identity_code, created_time,  user_name, user_id)
+		VALUES 
+			(#{taskId}, #{status}, #{channelType}, #{channelCode}, #{channelSrc}, 
+				#{channelAttr}, #{realName}, #{identityCode}, #{createdTime}, #{username},  #{userId})
+	</insert>
+	
+	<update id="updateReport">
+		UPDATE mgt_data_club_preloan_report 
+		SET 
+			status = #{status}, channel_type = #{channelType}, channel_code = #{channelCode}
+			, channel_src = #{channelSrc}, channel_attr= #{channelAttr}, real_name = #{realName}
+			, identity_code = #{identityCode}, user_name = #{username}, user_id = #{userId}
+		WHERE task_id = #{taskId}
+	</update>
+	
+	<select id="selectReport" resultType="com.jbb.mgt.core.domain.ClubReport">
+		SELECT <include refid="reportCols"/>	
+		FROM  mgt_data_club_preloan_report r
+		WHERE 1=1
+		<if test="userId!=null">
+			AND r.user_id = #{userId}
+		</if>
+		<if test="taskId!=null">
+			AND r.task_id = #{taskId}
+		</if>
+		<if test="identityCode!=null">
+			AND r.identity_code = #{identityCode}
+		</if>
+		<if test="realName!=null">
+			AND r.real_name = #{realName}
+		</if>
+		<if test="channelType">
+			AND r.channel_type = #{channelType}
+		</if>
+		<if test="username">
+			AND r.user_name = #{username}
+		</if>
+		 
+		ORDER BY r.status DESC, r.created_time DESC
+		LIMIT 1
+	</select>
+
+</mapper>

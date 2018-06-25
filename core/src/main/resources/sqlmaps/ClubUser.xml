@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.server.core.dao.mapper.ClubUserMapper" >
+
+  <insert id="insertClubUser" parameterType="com.jbb.server.core.domain.ClubUser" >
+    insert into club_mobile_grant_info (mobile, idcard_no, user_name, 
+      server_pass, creation_date, update_date, user_id)
+    values (#{mobile,jdbcType=VARCHAR},#{idcardNo,jdbcType=VARCHAR}, 
+     #{userName,jdbcType=VARCHAR},#{serverPass,jdbcType=VARCHAR}, 
+      #{creationDate,jdbcType=TIMESTAMP},#{updateDate,jdbcType=TIMESTAMP},
+      #{userId,jdbcType=INTEGER})
+  </insert>
+</mapper>

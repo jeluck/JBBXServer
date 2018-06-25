@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.UserContantMapper">
+
+    <insert id="insertOrUpdateUserContant">
+        INSERT INTO mgt_user_contants (user_id, phone_number, username,vcard, json_str) VALUES
+        <foreach collection="userContants" item="item" index="index" separator=",">
+            (#{item.userId},IFNULL(#{item.phoneNumber},""), IFNULL(#{item.userName},""), #{item.vcard}, #{item.jsonStr})
+        </foreach>
+        ON DUPLICATE KEY UPDATE vcard = VALUES(vcard)
+    </insert>
+
+    <insert id="jbbToMgtInsertOrUpdateUserContant">
+        INSERT INTO mgt_user_contants (user_id, phone_number, username,vcard, json_str) VALUES
+        <foreach collection="userContants" item="item" index="index" separator=",">
+            (#{userId},IFNULL(#{item.phoneNumber},""), IFNULL(#{item.userName},""), #{item.vcard}, #{item.jsonStr})
+        </foreach>
+        ON DUPLICATE KEY UPDATE json_str = VALUES(json_str)
+    </insert>
+
+    <select id="selectUserContantByUserId" resultType="com.jbb.mgt.core.domain.UserContant">
+        SELECT phone_number AS phoneNumber,username AS userName FROM mgt_user_contants WHERE user_id  = #{userId}
+    </select>
+</mapper>
+

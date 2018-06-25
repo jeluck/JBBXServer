@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jbb.mgt.core.dao.mapper.PayOrderMapper">
+
+	<sql id="payOrderCols">
+		p.out_trade_no AS outTradeNo,
+		p.user_id AS userId,
+		p.pay_money AS payMoney, 
+		p.pay_goods AS payGoods, 
+		p.pay_status AS payStatus,
+		p.careation_date AS creationDate, 
+		p.pay_date AS payDate,
+		p.pay_way AS payWay, 
+		p.subject AS subject,
+		p.trade_no AS tradeNo,
+		p.goods_id AS goodsId
+	</sql>
+	
+	<insert id="insertPayOrder">
+		INSERT INTO mgt_payorders 
+			(out_trade_no, user_id, pay_money, pay_goods, pay_status,careation_date,pay_date,pay_way, subject,goods_id)
+		VALUES 
+			(#{outTradeNo}, #{userId}, #{payMoney}, #{payGoods}, #{payStatus},#{creationDate},#{payDate},#{payWay},#{subject},#{goodsId})
+	</insert>
+	
+	<update id="updatePayOrder">
+		UPDATE mgt_payorders 
+		SET pay_status = #{payStatus},
+		pay_date = #{payDate},
+		trade_no = #{tradeNo}
+		WHERE out_trade_no = #{outTradeNo}
+	</update>
+	
+	<select id="selectPayOrder" resultType="com.jbb.mgt.core.domain.PayOrder">
+		SELECT  p.out_trade_no AS outTradeNo,
+		p.user_id AS userId,
+		p.pay_money AS payMoney, 
+		p.pay_goods AS payGoods, 
+		p.pay_status AS payStatus,
+		p.careation_date AS creationDate, 
+		p.pay_date AS payDate,
+		p.pay_way AS payWay, 
+		p.subject AS subject,
+		p.trade_no AS tradeNo,
+		p.goods_id AS goodsId				
+		FROM  mgt_payorders p
+		WHERE p.out_trade_no = #{outTradeNo}
+	</select>
+	
+	<select id="selectPayOrderForUpdate" resultType="com.jbb.mgt.core.domain.PayOrder">
+		SELECT  p.out_trade_no AS outTradeNo,
+		p.user_id AS userId,
+		p.pay_money AS payMoney, 
+		p.pay_goods AS payGoods, 
+		p.pay_status AS payStatus,
+		p.careation_date AS creationDate, 
+		p.pay_date AS payDate,
+		p.pay_way AS payWay, 
+		p.subject AS subject,	
+		p.trade_no AS tradeNo,
+		p.goods_id AS goodsId					
+		FROM  mgt_payorders p
+		WHERE p.out_trade_no = #{outTradeNo}
+	</select>
+</mapper> 
